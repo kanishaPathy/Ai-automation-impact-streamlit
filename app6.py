@@ -106,9 +106,9 @@ st.plotly_chart(fig3, use_container_width=True)
 # st.plotly_chart(fig4, use_container_width=True)
 
 # Calculate Percentiles (25th, 50th, 75th)
-edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].quantile([0.25, 0.5, 0.75]).unstack()
-edu_percentiles.reset_index(inplace=True)
-edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
+# edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].quantile([0.25, 0.5, 0.75]).unstack()
+# edu_percentiles.reset_index(inplace=True)
+# edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
 
 # Create an interactive bar chart with color scale to represent automation impact
 # fig6 = px.bar(edu_percentiles, 
@@ -134,63 +134,55 @@ edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentil
 #               barmode='stack', 
 #               color='variable')
 # st.plotly_chart(fig7, use_container_width=True)
-# ---------- Education Level Insights ----------
-st.markdown("---")
-st.header("🎓 Impact by Education Level")
+# ---------- Education Level Insights ----------st.markdown("---")
+st.header("🎓 Education Level vs Automation Impact")
 
-# ✅ Step 1: Ensure the data is available and contains the needed fields
-if '_id.EducationLevel' in df.columns and 'Avg_Automation_Impact' in df.columns:
-    
-    # ✅ Step 2: Prepare the education-level DataFrame
+# ✅ Step 1: Check if required columns exist in the main dataframe
+required_columns = ['_id.EducationLevel', 'Avg_Automation_Impact']
+if all(col in df.columns for col in required_columns):
+
+    # ✅ Step 2: Filter necessary columns and drop missing values
     edu_df = df[['_id.EducationLevel', 'Avg_Automation_Impact']].dropna()
 
-    # ✅ Step 3: Allow filtering
-    all_levels = sorted(edu_df['_id.EducationLevel'].unique())
-    selected_levels = st.multiselect("🔍 Select Education Levels to Display", all_levels, default=all_levels)
-    filtered_df = edu_df[edu_df['_id.EducationLevel'].isin(selected_levels)]
+    if not edu_df.empty:
+        # ✅ Step 3: Group and calculate percentiles
+        try:
+            edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'] \
+                                     .quantile([0.25, 0.5, 0.75]) \
+                                     .unstack().reset_index()
 
-    # ✅ Step 4: Create Tabs for views
-    tab1, tab2 = st.tabs(["📊 Percentile Distribution", "📈 Average Impact"])
+            edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
 
-    with tab1:
-        # Calculate percentiles
-        percentiles = filtered_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'] \
-                                 .quantile([0.25, 0.5, 0.75]) \
-                                 .unstack().reset_index()
+            # ✅ Step 4: Percentile Distribution Plot
+            fig_percentiles = px.bar(edu_percentiles,
+                                     x='Education Level',
+                                     y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
+                                     title="Percentile Distribution of Automation Impact by Education Level",
+                                     labels={'value': 'Automation Impact'},
+                                     barmode='group',
+                                     color_discrete_sequence=px.colors.sequential.Plasma)
+            st.plotly_chart(fig_percentiles, use_container_width=True)
 
-        percentiles.columns = ['Education Level', '25th Percentile', 'Median (50th)', '75th Percentile']
+        except Exception as e:
+            st.error(f"❌ Error while calculating percentiles: {e}")
 
-        # Plot
-        fig_percentiles = px.bar(percentiles, 
-                                 x='Education Level', 
-                                 y=['25th Percentile', 'Median (50th)', '75th Percentile'],
-                                 barmode='group',
-                                 title="📊 Percentile Distribution of Automation Impact by Education Level",
-                                 labels={'value': 'Automation Impact'},
-                                 color_discrete_sequence=px.colors.sequential.RdBu)
-        st.plotly_chart(fig_percentiles, use_container_width=True)
+        # ✅ Step 5: Average Impact Horizontal Bar Chart
+        edu_avg = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].mean().reset_index()
 
-    with tab2:
-        # Average impact per education level
-        avg_impact = filtered_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].mean().reset_index()
-
-        # Plot
-        fig_avg = px.bar(avg_impact, 
-                         y='_id.EducationLevel', 
+        fig_avg = px.bar(edu_avg,
+                         y='_id.EducationLevel',
                          x='Avg_Automation_Impact',
                          orientation='h',
-                         title='📈 Average Automation Impact by Education Level',
+                         title="Average Automation Impact by Education Level",
                          color='Avg_Automation_Impact',
-                         color_continuous_scale='Plasma',
-                         hover_data={'Avg_Automation_Impact': ':.2f'})
+                         color_continuous_scale='Viridis')
         st.plotly_chart(fig_avg, use_container_width=True)
 
-    # Optional table
-    with st.expander("📋 Show Data Table"):
-        st.dataframe(avg_impact.style.format({'Avg_Automation_Impact': '{:.2f}'}))
-
+    else:
+        st.warning("⚠️ No data available after removing missing values.")
 else:
-    st.warning("❗ Required columns '_id.EducationLevel' or 'Avg_Automation_Impact' not found in the dataset.")
+    st.error("❗ Required columns '_id.EducationLevel' or 'Avg_Automation_Impact' not found in the dataset.")
+
 
 # ---------- Export Prediction ----------
 st.markdown("---")
