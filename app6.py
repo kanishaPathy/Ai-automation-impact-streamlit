@@ -90,14 +90,14 @@ st.plotly_chart(fig3, use_container_width=True)
 
 
 # ---------- Education Level Impact Section ----------
-st.markdown("---")
-st.header("🎓 Impact by Education Level")
+# st.markdown("---")
+# st.header("🎓 Impact by Education Level")
 
-# Allow multiple education levels to be selected and show comparison
-education_levels = ['High School', 'Associate', 'Bachelor', 'Masters', 'PhD']
-selected_education_levels = st.multiselect("Select Education Levels for Comparison", education_levels, default=education_levels)
+# # Allow multiple education levels to be selected and show comparison
+# education_levels = ['High School', 'Associate', 'Bachelor', 'Masters', 'PhD']
+# selected_education_levels = st.multiselect("Select Education Levels for Comparison", education_levels, default=education_levels)
 
-edu_df = df[df['_id.EducationLevel'].isin(selected_education_levels)]
+# edu_df = df[df['_id.EducationLevel'].isin(selected_education_levels)]
 # edu_avg = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
 
 # # Plotting Education Level vs AI Impact
@@ -111,18 +111,18 @@ edu_percentiles.reset_index(inplace=True)
 edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
 
 # Create an interactive bar chart with color scale to represent automation impact
-fig6 = px.bar(edu_percentiles, 
-              x='Education Level', 
-              y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
-              title="Percentile Distribution of Automation Impact by Education Level",
-              labels={'value': 'Automation Impact', 'Education Level': 'Education Level'},
-              color_discrete_sequence=px.colors.sequential.RdBu)
-st.plotly_chart(fig6, use_container_width=True)
+# fig6 = px.bar(edu_percentiles, 
+#               x='Education Level', 
+#               y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
+#               title="Percentile Distribution of Automation Impact by Education Level",
+#               labels={'value': 'Automation Impact', 'Education Level': 'Education Level'},
+#               color_discrete_sequence=px.colors.sequential.RdBu)
+# st.plotly_chart(fig6, use_container_width=True)
  # Additional Visualization: Education Level vs Automation Impact
-edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
-fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
-              orientation='h', title='Average Automation Impact by Education Level')
-st.plotly_chart(fig5, use_container_width=True)
+# edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
+# fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
+#               orientation='h', title='Average Automation Impact by Education Level')
+# st.plotly_chart(fig5, use_container_width=True)
 
 # # Stacked Bar: Pre-AI vs Post-AI Impact by Education Level
 # edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
@@ -134,7 +134,51 @@ st.plotly_chart(fig5, use_container_width=True)
 #               barmode='stack', 
 #               color='variable')
 # st.plotly_chart(fig7, use_container_width=True)
+# ---------- Education Level Insights ----------
+st.markdown("---")
+st.header("🎓 Impact by Education Level")
 
+# Filter Option
+all_levels = sorted(df['_id.EducationLevel'].unique())
+selected_levels = st.multiselect("🔍 Select Education Levels to Display", all_levels, default=all_levels)
+filtered_df = df[df['_id.EducationLevel'].isin(selected_levels)]
+
+# Create Tabs for views
+tab1, tab2 = st.tabs(["📊 Percentile Distribution", "📈 Average Impact"])
+
+with tab1:
+    # Percentile Calculation
+    edu_percentiles = filtered_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].quantile([0.25, 0.5, 0.75]).unstack().reset_index()
+    edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
+
+    # Plot
+    fig6 = px.bar(edu_percentiles, 
+                  x='Education Level', 
+                  y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
+                  barmode='group',
+                  title="📊 Percentile Distribution of Automation Impact by Education Level",
+                  labels={'value': 'Automation Impact', 'Education Level': 'Education Level'},
+                  color_discrete_sequence=px.colors.sequential.RdBu)
+    st.plotly_chart(fig6, use_container_width=True)
+
+with tab2:
+    # Average Impact Calculation
+    edu_avg_impact = filtered_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
+
+    # Plot
+    fig5 = px.bar(edu_avg_impact, 
+                  y='_id.EducationLevel', 
+                  x='Avg_Automation_Impact',
+                  orientation='h',
+                  title='📈 Average Automation Impact by Education Level',
+                  color='Avg_Automation_Impact',
+                  color_continuous_scale='Plasma',
+                  hover_data={'Avg_Automation_Impact': ':.2f'})
+    st.plotly_chart(fig5, use_container_width=True)
+
+# Optional: Show summary table
+with st.expander("📋 Show Data Table"):
+    st.dataframe(edu_avg_impact.style.format({'Avg_Automation_Impact': '{:.2f}'}))
 
 # ---------- Export Prediction ----------
 st.markdown("---")
@@ -145,4 +189,4 @@ if st.button("💾 Save Prediction to CSV"):
 
 # Footer
 st.markdown("---")
-st.caption("📊 Built with ❤️ by [Your Name] | Powered by Streamlit + Plotly + XGBoost")
+st.caption("📊 Built with ❤️ by Kanisha Pathy | Powered by Streamlit + Plotly + XGBoost")
