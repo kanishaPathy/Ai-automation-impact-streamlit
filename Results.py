@@ -82,9 +82,11 @@ with tab1:
             # Optional: Visualization of similar real data
             filtered_df = df[(df['_id.Year'] == year) & (df['_id.Country'] == label_encoder.transform([country])[0])]
 
-            fig = px.bar(filtered_df, x='_id.Country', y='Automation_Impact', color='_id.Year',
-                         barmode='group', title='Actual Automation Impact by Country and Year')
-            st.plotly_chart(fig, use_container_width=True)
+            # Ensure correct column names are used for plotting
+            if '_id.Sector' in filtered_df.columns and 'Automation_Impact' in filtered_df.columns:
+                fig = px.bar(filtered_df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
+                             barmode='group', title='Actual Automation Impact by Country and Year')
+                st.plotly_chart(fig, use_container_width=True)
 
 # ---------- Comparison Section ----------
 st.markdown("---")
@@ -94,10 +96,15 @@ country1 = cols[0].selectbox("Select First Country", df['_id.Country'].unique(),
 country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Country'].unique() if c != country1], key='country2')
 
 compare_df = df[df['_id.Country'].isin([country1, country2])]
-fig1 = px.bar(compare_df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
-              title=f'Automation Impact: {country1} vs {country2}',
-              barmode='group', height=400)
-st.plotly_chart(fig1, use_container_width=True)
+
+# Check if necessary columns are available in compare_df
+if '_id.Sector' in compare_df.columns and 'Automation_Impact' in compare_df.columns:
+    fig1 = px.bar(compare_df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
+                  title=f'Automation Impact: {country1} vs {country2}',
+                  barmode='group', height=400)
+    st.plotly_chart(fig1, use_container_width=True)
+else:
+    st.error("Required columns are missing in the dataset.")
 
 # ---------- Unemployment Over Time ----------
 st.markdown("---")
