@@ -8,7 +8,7 @@ import plotly.express as px
 
 # Load model and dataset
 model = joblib.load("xgboost_model.pkl")
-df = pd.read_csv(r"C:\Users\Kanisha Pathy\OneDrive\Desktop\KP\Project-Updated_AI_impact\Unemployment_jobcreation_db.Unemployment_data.csv")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
 # Page title
 st.set_page_config(layout="wide")
