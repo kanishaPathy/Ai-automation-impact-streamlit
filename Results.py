@@ -82,6 +82,10 @@ with tab1:
             # Optional: Visualization of similar real data
             filtered_df = df[(df['_id.Year'] == year) & (df['_id.Country'] == label_encoder.transform([country])[0])]
 
+            # Print the columns and head of filtered dataframe to debug
+            st.write("Columns in filtered dataframe:", filtered_df.columns)
+            st.write("Filtered DataFrame preview:", filtered_df.head())
+
             # Ensure correct column names are used for plotting
             if '_id.Sector' in filtered_df.columns and 'Automation_Impact' in filtered_df.columns:
                 fig = px.bar(filtered_df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
@@ -95,7 +99,12 @@ cols = st.columns(2)
 country1 = cols[0].selectbox("Select First Country", df['_id.Country'].unique(), key='country1')
 country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Country'].unique() if c != country1], key='country2')
 
+# Filter for selected countries and check available columns
 compare_df = df[df['_id.Country'].isin([country1, country2])]
+
+# Print columns of compare_df to debug
+st.write("Columns in compare_df:", compare_df.columns)
+st.write("compare_df preview:", compare_df.head())
 
 # Check if necessary columns are available in compare_df
 if '_id.Sector' in compare_df.columns and 'Automation_Impact' in compare_df.columns:
@@ -105,32 +114,3 @@ if '_id.Sector' in compare_df.columns and 'Automation_Impact' in compare_df.colu
     st.plotly_chart(fig1, use_container_width=True)
 else:
     st.error("Required columns are missing in the dataset.")
-
-# ---------- Unemployment Over Time ----------
-st.markdown("---")
-st.header("📈 Unemployment Trend Over Time")
-unemp = df.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig2 = px.line(unemp, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
-               labels={'value': 'Impact Score', 'variable': 'Impact Type'},
-               title='Unemployment Impact (Pre-AI vs Post-AI) Over Years')
-st.plotly_chart(fig2, use_container_width=True)
-
-# ---------- Sector Trend ----------
-st.markdown("---")
-st.header("🏭 Sector-wise Unemployment Comparison")
-sector_selected = st.selectbox("Select Sector", df['_id.Sector'].unique(), key='sector_analysis')
-df_sec = df[df['_id.Sector'] == sector_selected].groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
-              barmode='group', title=f'Unemployment Trend in {sector_selected}')
-st.plotly_chart(fig3, use_container_width=True)
-
-# ---------- Export Prediction ----------
-st.markdown("---")
-if st.button("💾 Save Prediction to CSV"):
-    input_df['Predicted_Automation_Impact'] = prediction
-    input_df.to_csv("saved_prediction.csv", index=False)
-    st.success("📁 Prediction saved to **saved_prediction.csv**")
-
-# Footer
-st.markdown("---")
-st.caption("📊 Built with ❤️ by Kanisha Pathy | Powered by Streamlit + Plotly + XGBoost")
