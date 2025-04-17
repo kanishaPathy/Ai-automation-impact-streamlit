@@ -135,13 +135,17 @@ edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentil
 #               color='variable')
 # st.plotly_chart(fig7, use_container_width=True)
 # ---------- Education Level Insights ----------
+# ---------- Education Level Insights ----------
 st.markdown("---")
 st.header("🎓 Impact by Education Level")
 
+# Prepare the education-level DataFrame
+edu_df = df[['_id.EducationLevel', 'Avg_Automation_Impact']]  # Now properly defined
+
 # Filter Option
-all_levels = sorted(df['_id.EducationLevel'].unique())
+all_levels = sorted(edu_df['_id.EducationLevel'].unique())
 selected_levels = st.multiselect("🔍 Select Education Levels to Display", all_levels, default=all_levels)
-filtered_df = df[df['_id.EducationLevel'].isin(selected_levels)]
+filtered_df = edu_df[edu_df['_id.EducationLevel'].isin(selected_levels)]
 
 # Create Tabs for views
 tab1, tab2 = st.tabs(["📊 Percentile Distribution", "📈 Average Impact"])
