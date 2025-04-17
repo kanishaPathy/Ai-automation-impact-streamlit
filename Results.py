@@ -82,11 +82,11 @@ with tab1:
             # Optional: Visualization of similar real data
             filtered_df = df[(df['_id.Year'] == year) & (df['_id.Country'] == label_encoder.transform([country])[0])]
 
-            # Print the columns and head of filtered dataframe to debug
+            # Debug: Print columns and preview to inspect data
             st.write("Columns in filtered dataframe:", filtered_df.columns)
             st.write("Filtered DataFrame preview:", filtered_df.head())
 
-            # Ensure correct column names are used for plotting
+            # Check if necessary columns are available in filtered_df
             if '_id.Sector' in filtered_df.columns and 'Automation_Impact' in filtered_df.columns:
                 fig = px.bar(filtered_df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
                              barmode='group', title='Actual Automation Impact by Country and Year')
@@ -102,7 +102,7 @@ country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Countr
 # Filter for selected countries and check available columns
 compare_df = df[df['_id.Country'].isin([country1, country2])]
 
-# Print columns of compare_df to debug
+# Debug: Print columns of compare_df to inspect
 st.write("Columns in compare_df:", compare_df.columns)
 st.write("compare_df preview:", compare_df.head())
 
