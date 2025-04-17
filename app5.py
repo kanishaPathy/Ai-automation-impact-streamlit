@@ -7,7 +7,7 @@ import seaborn as sns
 import plotly.express as px
 
 # Load model and dataset
-model = joblib.load(r"C:\Users\Kanisha Pathy\OneDrive\Desktop\KP\Project-Updated_AI_impact\xgboost_model.pkl")
+model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv(r"C:\Users\Kanisha Pathy\OneDrive\Desktop\KP\Project-Updated_AI_impact\Unemployment_jobcreation_db.Unemployment_data.csv")
 
 # Page title
