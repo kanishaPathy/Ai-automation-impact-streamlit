@@ -105,11 +105,6 @@ edu_df = df[df['_id.EducationLevel'].isin(selected_education_levels)]
 #               orientation='h', barmode='group', title='Education Level vs AI Impact')
 # st.plotly_chart(fig4, use_container_width=True)
 
-# # Additional Visualization: Education Level vs Automation Impact
-# edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
-# fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
-#               orientation='h', title='Average Automation Impact by Education Level')
-# st.plotly_chart(fig5, use_container_width=True)
 # Calculate Percentiles (25th, 50th, 75th)
 edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].quantile([0.25, 0.5, 0.75]).unstack()
 edu_percentiles.reset_index(inplace=True)
@@ -123,17 +118,22 @@ fig6 = px.bar(edu_percentiles,
               labels={'value': 'Automation Impact', 'Education Level': 'Education Level'},
               color_discrete_sequence=px.colors.sequential.RdBu)
 st.plotly_chart(fig6, use_container_width=True)
+ # Additional Visualization: Education Level vs Automation Impact
+edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
+fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
+              orientation='h', title='Average Automation Impact by Education Level')
+st.plotly_chart(fig5, use_container_width=True)
 
-# Stacked Bar: Pre-AI vs Post-AI Impact by Education Level
-edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig7 = px.bar(edu_impact_df, 
-              x='_id.EducationLevel', 
-              y=['Avg_PreAI', 'Avg_PostAI'],
-              title="Pre-AI vs Post-AI Impact by Education Level",
-              labels={'value': 'Impact Score', 'variable': 'Impact Type'},
-              barmode='stack', 
-              color='variable')
-st.plotly_chart(fig7, use_container_width=True)
+# # Stacked Bar: Pre-AI vs Post-AI Impact by Education Level
+# edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+# fig7 = px.bar(edu_impact_df, 
+#               x='_id.EducationLevel', 
+#               y=['Avg_PreAI', 'Avg_PostAI'],
+#               title="Pre-AI vs Post-AI Impact by Education Level",
+#               labels={'value': 'Impact Score', 'variable': 'Impact Type'},
+#               barmode='stack', 
+#               color='variable')
+# st.plotly_chart(fig7, use_container_width=True)
 
 
 # ---------- Export Prediction ----------
