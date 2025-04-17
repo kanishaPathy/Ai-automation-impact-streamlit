@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Dummy dataset for dropdown population (replace with your actual DataFrame)
-df = pd.read_csv("your_data.csv")
+# Load model and data
+model = joblib.load("xgboost_model.pkl")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI & Automation Impact Predictor")
