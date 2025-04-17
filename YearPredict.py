@@ -4,9 +4,9 @@ import plotly.express as px
 from sklearn.preprocessing import LabelEncoder
 import xgboost as xgb
 
-# Load your model (replace with your actual model)
-model = xgb.Booster()
-model.load_model('path_to_your_model.model')
+# Load model and data
+model = joblib.load("xgboost_model.pkl")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
 # Sample data (replace with your actual dataset)
 df = pd.DataFrame({
