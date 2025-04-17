@@ -9,6 +9,8 @@ import plotly.express as px
 model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
+# Display column names for debugging
+st.write("Column names:", df.columns.tolist())
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI & Automation Impact Predictor")
@@ -23,12 +25,12 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        selected_years = st.multiselect("📅 Select Year(s)", sorted(df['Year'].unique()), default=[df['Year'].max()])
-        selected_countries = st.multiselect("🌍 Select Country(ies)", sorted(df['Country'].unique()), default=["Ireland", "USA"])
-        selected_sector = st.selectbox("🏢 Select Sector", sorted(df['Sector'].unique()))
+        selected_years = st.multiselect("📅 Select Year(s)", sorted(df['_id.Year'].unique()), default=[df['_id.Year'].max()])
+        selected_countries = st.multiselect("🌍 Select Country(ies)", sorted(df['_id.Country'].unique()), default=["Ireland", "USA"])
+        selected_sector = st.selectbox("🏢 Select Sector", sorted(df['_id.Sector'].unique()))
         
     with col2:
-        selected_edu = st.selectbox("🎓 Select Education Level", sorted(df['Education Level'].unique()))
+        selected_edu = st.selectbox("🎓 Select Education Level", sorted(df['_id.EducationLevel'].unique()))
         pre_ai = st.slider("Pre-AI Impact (%)", 0, 100, 50)
         post_ai = st.slider("Post-AI Impact (%)", 0, 100, 50)
         automation_impact = st.slider("Automation Impact (%)", 0, 100, 50)
@@ -68,9 +70,9 @@ with tab1:
             st.metric(label="Predicted Automation Impact Level", value=f"{round(prediction, 2)}%")
 
             # Optional: Visualization of similar real data
-            filtered_df = df[(df['Year'].isin(selected_years)) & (df['Country'].isin(selected_countries))]
+            filtered_df = df[(df['_id.Year'].isin(selected_years)) & (df['_id.Country'].isin(selected_countries))]
 
-            fig = px.bar(filtered_df, x='Country', y='Automation_Impact', color='Year',
+            fig = px.bar(filtered_df, x='_id.Country', y='Automation_Impact', color='_id.Year',
                          barmode='group', title='Actual Automation Impact by Country and Year')
             st.plotly_chart(fig, use_container_width=True)
 
@@ -105,53 +107,8 @@ fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
               barmode='group', title=f'Unemployment Trend in {sector_selected}')
 st.plotly_chart(fig3, use_container_width=True)
 
-
 # ---------- Education Level Impact Section ----------
-# st.markdown("---")
-# st.header("🎓 Impact by Education Level")
-
-# # Allow multiple education levels to be selected and show comparison
-# education_levels = ['High School', 'Associate', 'Bachelor', 'Masters', 'PhD']
-# selected_education_levels = st.multiselect("Select Education Levels for Comparison", education_levels, default=education_levels)
-
-# edu_df = df[df['_id.EducationLevel'].isin(selected_education_levels)]
-# edu_avg = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-
-# # Plotting Education Level vs AI Impact
-# fig4 = px.bar(edu_avg, y='_id.EducationLevel', x=['Avg_PreAI', 'Avg_PostAI'],
-#               orientation='h', barmode='group', title='Education Level vs AI Impact')
-# st.plotly_chart(fig4, use_container_width=True)
-
-# Calculate Percentiles (25th, 50th, 75th)
-# edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].quantile([0.25, 0.5, 0.75]).unstack()
-# edu_percentiles.reset_index(inplace=True)
-# edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
-
-# Create an interactive bar chart with color scale to represent automation impact
-# fig6 = px.bar(edu_percentiles, 
-#               x='Education Level', 
-#               y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
-#               title="Percentile Distribution of Automation Impact by Education Level",
-#               labels={'value': 'Automation Impact', 'Education Level': 'Education Level'},
-#               color_discrete_sequence=px.colors.sequential.RdBu)
-# st.plotly_chart(fig6, use_container_width=True)
- # Additional Visualization: Education Level vs Automation Impact
-# edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
-# fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
-#               orientation='h', title='Average Automation Impact by Education Level')
-# st.plotly_chart(fig5, use_container_width=True)
-
-# # Stacked Bar: Pre-AI vs Post-AI Impact by Education Level
-# edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-# fig7 = px.bar(edu_impact_df, 
-#               x='_id.EducationLevel', 
-#               y=['Avg_PreAI', 'Avg_PostAI'],
-#               title="Pre-AI vs Post-AI Impact by Education Level",
-#               labels={'value': 'Impact Score', 'variable': 'Impact Type'},
-#               barmode='stack', 
-#               color='variable')
-# st.plotly_chart(fig7, use_container_width=True)
-# ---------- Education Level Insights ----------st.markdown("---")
+st.markdown("---")
 st.header("🎓 Education Level vs Automation Impact")
 
 # ✅ Step 1: Check if required columns exist in the main dataframe
@@ -199,7 +156,6 @@ if all(col in df.columns for col in required_columns):
         st.warning("⚠️ No data available after removing missing values.")
 else:
     st.error("❗ Required columns '_id.EducationLevel' or 'Avg_Automation_Impact' not found in the dataset.")
-
 
 # ---------- Export Prediction ----------
 st.markdown("---")
