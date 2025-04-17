@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import joblib
 import plotly.express as px
 
 # Load model and data
