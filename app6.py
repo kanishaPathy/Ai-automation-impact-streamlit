@@ -9,7 +9,7 @@ model = joblib.load("xgboost_model.pkl")
 
 # Load your data (this would ideally be from your database or CSV file)
 # You can also load from a CSV, but in this case, we assume you already have a dataframe loaded
-df = pd.read_csv("your_dataset.csv")  # Replace with your dataset
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
 # Function to make prediction
 def make_prediction(year, avg_pre_ai, avg_post_ai, avg_ai_role_jobs, avg_reskilling_programs, avg_economic_impact, avg_sector_growth,
