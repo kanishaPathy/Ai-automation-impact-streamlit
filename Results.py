@@ -2,10 +2,19 @@ import pandas as pd
 import joblib
 import streamlit as st
 import plotly.express as px
+from sklearn.preprocessing import LabelEncoder
 
 # Load model and data
 model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Apply label encoding to categorical columns in the original DataFrame
+df['_id.Country'] = label_encoder.fit_transform(df['_id.Country'])
+df['_id.Sector'] = label_encoder.fit_transform(df['_id.Sector'])
+df['_id.EducationLevel'] = label_encoder.fit_transform(df['_id.EducationLevel'])
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI & Automation Impact Predictor")
@@ -48,12 +57,12 @@ with tab1:
         with tab2:
             st.subheader("📈 Prediction Result")
 
-            # Create input dataframe
+            # Create input dataframe (make sure to encode categorical values)
             input_data = {
                 "_id.Year": year,
-                "_id.Country": country,
-                "_id.Sector": sector,
-                "_id.EducationLevel": education,
+                "_id.Country": label_encoder.transform([country])[0],  # Encode country
+                "_id.Sector": label_encoder.transform([sector])[0],  # Encode sector
+                "_id.EducationLevel": label_encoder.transform([education])[0],  # Encode education level
                 "PreAI": pre_ai,
                 "PostAI": post_ai,
                 "Automation_Impact": automation_impact,
@@ -71,7 +80,7 @@ with tab1:
             st.metric(label="Predicted Automation Impact Level", value=f"{round(prediction, 2)}%")
 
             # Optional: Visualization of similar real data
-            filtered_df = df[(df['_id.Year'] == year) & (df['_id.Country'] == country)]
+            filtered_df = df[(df['_id.Year'] == year) & (df['_id.Country'] == label_encoder.transform([country])[0])]
 
             fig = px.bar(filtered_df, x='_id.Country', y='Automation_Impact', color='_id.Year',
                          barmode='group', title='Actual Automation Impact by Country and Year')
