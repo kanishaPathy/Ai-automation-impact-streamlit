@@ -65,7 +65,7 @@ country1 = cols[0].selectbox("Select First Country", df['_id.Country'].unique(),
 country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Country'].unique() if c != country1], key='country2')
 
 compare_df = df[df['_id.Country'].isin([country1, country2])]
-fig1 = px.bar(compare_df, x='Sector', y='Average Automation Impact Score', color='_id.Country',
+fig1 = px.bar(compare_df, x='_id.Sector', y='Average Automation Impact Score', color='_id.Country',
               title=f'Automation Impact: {country1} vs {country2}',
               barmode='group', height=400)
 st.plotly_chart(fig1, use_container_width=True)
