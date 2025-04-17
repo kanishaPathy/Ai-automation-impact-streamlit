@@ -88,13 +88,29 @@ fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
               barmode='group', title=f'Unemployment Trend in {sector_selected}')
 st.plotly_chart(fig3, use_container_width=True)
 
-# ---------- Education Level ----------
+
+# ---------- Education Level Impact Section ----------
 st.markdown("---")
 st.header("🎓 Impact by Education Level")
-edu_df = df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig4 = px.bar(edu_df, y='_id.EducationLevel', x=['Avg_PreAI', 'Avg_PostAI'],
+
+# Allow multiple education levels to be selected and show comparison
+education_levels = ['High School', 'Associate', 'Bachelor', 'Masters', 'PhD']
+selected_education_levels = st.multiselect("Select Education Levels for Comparison", education_levels, default=education_levels)
+
+edu_df = df[df['_id.EducationLevel'].isin(selected_education_levels)]
+edu_avg = edu_df.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+
+# Plotting Education Level vs AI Impact
+fig4 = px.bar(edu_avg, y='_id.EducationLevel', x=['Avg_PreAI', 'Avg_PostAI'],
               orientation='h', barmode='group', title='Education Level vs AI Impact')
 st.plotly_chart(fig4, use_container_width=True)
+
+# Additional Visualization: Education Level vs Automation Impact
+edu_impact_df = edu_df.groupby('_id.EducationLevel')[['Avg_Automation_Impact']].mean().reset_index()
+fig5 = px.bar(edu_impact_df, y='_id.EducationLevel', x='Avg_Automation_Impact',
+              orientation='h', title='Average Automation Impact by Education Level')
+st.plotly_chart(fig5, use_container_width=True)
+
 
 # ---------- Export Prediction ----------
 st.markdown("---")
