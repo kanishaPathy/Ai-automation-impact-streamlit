@@ -6,8 +6,8 @@ import seaborn as sns
 import plotly.express as px
 
 # Load model and data
-model = joblib.load("C:\\Users\\Kanisha Pathy\\OneDrive\\Desktop\\KP\\Project-Updated_AI_impact\\xgboost_model.pkl")
-df = pd.read_csv("C:\\Users\\Kanisha Pathy\\OneDrive\\Desktop\\KP\\Project-Updated_AI_impact\\Unemployment_jobcreation_db.Unemployment_data.csv")
+model = joblib.load("xgboost_model.pkl")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
