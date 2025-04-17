@@ -1,98 +1,100 @@
-import joblib
-import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
+import xgboost as xgb
+import numpy as np
+
+# Load your dataset
+df = pd.read_csv("your_dataset.csv")  # Replace with your dataset path
 
 # Load the model
-model = joblib.load("xgboost_model.pkl")
+model = xgb.XGBRegressor()
+model.load_model("xgboost_model.json")  # Path to your XGBoost model
 
-# Load your data (this would ideally be from your database or CSV file)
-# You can also load from a CSV, but in this case, we assume you already have a dataframe loaded
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+# Streamlit layout
+st.title("🚀 AI & Automation Impact Analysis")
 
-# Function to make prediction
-def make_prediction(year, avg_pre_ai, avg_post_ai, avg_ai_role_jobs, avg_reskilling_programs, avg_economic_impact, avg_sector_growth,
-                     country, sector, education_level):
-    input_df = pd.DataFrame({
-        "_id.Year": [year],
-        "Avg_PreAI": [avg_pre_ai],
-        "Avg_PostAI": [avg_post_ai],
-        "Avg_AI_Role_Jobs": [avg_ai_role_jobs],
-        "Avg_ReskillingPrograms": [avg_reskilling_programs],
-        "Avg_EconomicImpact": [avg_economic_impact],
-        "Avg_SectorGrowth": [avg_sector_growth],
-        "_id.Country_Canada": [1 if country == 'Canada' else 0],
-        "_id.Country_Germany": [1 if country == 'Germany' else 0],
-        "_id.Country_India": [1 if country == 'India' else 0],
-        "_id.Country_Ireland": [1 if country == 'Ireland' else 0],
-        "_id.Country_USA": [1 if country == 'USA' else 0],
-        "_id.Sector_Agriculture": [1 if sector == 'Agriculture' else 0],
-        "_id.Sector_Education": [1 if sector == 'Education' else 0],
-        "_id.Sector_Finance": [1 if sector == 'Finance' else 0],
-        "_id.Sector_Healthcare": [1 if sector == 'Healthcare' else 0],
-        "_id.Sector_IT": [1 if sector == 'IT' else 0],
-        "_id.Sector_Manufacturing": [1 if sector == 'Manufacturing' else 0],
-        "_id.Sector_Media & Entertainment": [1 if sector == 'Media & Entertainment' else 0],
-        "_id.Sector_Retail": [1 if sector == 'Retail' else 0],
-        "_id.Sector_Transportation": [1 if sector == 'Transportation' else 0],
-        "_id.EducationLevel_Bachelor": [1 if education_level == 'Bachelor' else 0],
-        "_id.EducationLevel_High School": [1 if education_level == 'High School' else 0],
-        "_id.EducationLevel_Master": [1 if education_level == 'Master' else 0],
-        "_id.EducationLevel_PhD": [1 if education_level == 'PhD' else 0],
-        "_id.EducationLevel_Unknown": [1 if education_level == 'Unknown' else 0]
-    })
+# 1️⃣ Country-wise Comparison
+st.markdown("---")
+st.header("1️⃣ Country-wise Comparison of Automation Impact")
+country1 = st.selectbox("Select First Country", df['_id.Country'].unique(), key='country1_select')
+country2 = st.selectbox("Select Second Country", df['_id.Country'].unique(), key='country2_select')
+compare_df = df[df['_id.Country'].isin([country1, country2])]
 
-    input_df = input_df[model.get_booster().feature_names]
-    prediction = model.predict(input_df)
-    return prediction
+fig1, ax1 = plt.subplots(figsize=(8, 4))
+sns.barplot(data=compare_df, x='_id.Sector', y='Avg_Automation_Impact', hue='_id.Country', ax=ax1)
+ax1.set_title(f"Automation Impact: {country1} vs {country2}", fontsize=12)
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=30)
+st.pyplot(fig1)
 
-# Streamlit app interface
-st.title("AI & Automation Impact Prediction")
+# 2️⃣ Unemployment Impact Over Time (Pre vs Post AI)
+st.markdown("---")
+st.header("2️⃣ Unemployment Impact (Pre-AI vs Post-AI) Over Time")
+unemployment_df = df.groupby(['_id.Year']).agg({'Avg_PreAI': 'mean', 'Avg_PostAI': 'mean'}).reset_index()
+fig2 = plt.figure(figsize=(8, 4))
+plt.plot(unemployment_df['_id.Year'], unemployment_df['Avg_PreAI'], label='Pre-AI Impact', color='skyblue', marker='o')
+plt.plot(unemployment_df['_id.Year'], unemployment_df['Avg_PostAI'], label='Post-AI Impact', color='orange', marker='o')
+plt.title('Unemployment Impact Over Time')
+plt.xlabel('Year')
+plt.ylabel('Impact')
+plt.legend()
+st.pyplot(fig2)
 
-# Create user inputs
-year = st.number_input("Year", min_value=2010, max_value=2024, value=2022)
-avg_pre_ai = st.number_input("Avg Pre-AI")
-avg_post_ai = st.number_input("Avg Post-AI")
-avg_ai_role_jobs = st.number_input("Avg AI Role Jobs")
-avg_reskilling_programs = st.number_input("Avg Reskilling Programs")
-avg_economic_impact = st.number_input("Avg Economic Impact")
-avg_sector_growth = st.number_input("Avg Sector Growth")
+# 3️⃣ Sector-wise Unemployment Comparison
+st.markdown("---")
+st.header("3️⃣ Sector-wise Unemployment Comparison")
+sector_choice = st.selectbox("Select Sector", df['_id.Sector'].unique(), key='sector_choice_select')
+df_sector = df[df['_id.Sector'] == sector_choice]
+df_sector_grouped = df_sector.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig3, ax3 = plt.subplots(figsize=(8, 4))
+df_sector_grouped.set_index('_id.Year').plot(kind='bar', ax=ax3)
+ax3.set_title(f"Unemployment Impact in {sector_choice}", fontsize=12)
+ax3.set_ylabel("Impact Score")
+ax3.set_xlabel("Year")
+st.pyplot(fig3)
 
-# Select box for categorical inputs
-country = st.selectbox("Select Country", ['Canada', 'Germany', 'India', 'Ireland', 'USA'])
-sector = st.selectbox("Select Sector", ['Agriculture', 'Education', 'Finance', 'Healthcare', 'IT', 'Manufacturing', 'Media & Entertainment', 'Retail', 'Transportation'])
-education_level = st.selectbox("Select Education Level", ['Bachelor', 'High School', 'Master', 'PhD', 'Unknown'])
+# 4️⃣ Education Level Impact on Automation
+st.markdown("---")
+st.header("4️⃣ Education Level Impact on Automation")
+edu_df = df.groupby('_id.EducationLevel').agg({'Avg_PreAI': 'mean', 'Avg_PostAI': 'mean', 'Avg_Automation_Impact': 'mean'}).reset_index()
+fig4, ax4 = plt.subplots(figsize=(8, 4))
+sns.barplot(x='Avg_PreAI', y='_id.EducationLevel', data=edu_df, label='Pre-AI Impact', color='skyblue')
+sns.barplot(x='Avg_PostAI', y='_id.EducationLevel', data=edu_df, label='Post-AI Impact', color='orange')
+plt.title('Education Level Impact on AI (Pre vs Post)')
+plt.legend()
+st.pyplot(fig4)
 
-# Display inputs
-st.write(f"Selected Inputs - Year: {year}, Avg Pre-AI: {avg_pre_ai}, Avg Post-AI: {avg_post_ai}, Avg AI Role Jobs: {avg_ai_role_jobs}, "
-         f"Avg Reskilling Programs: {avg_reskilling_programs}, Avg Economic Impact: {avg_economic_impact}, Avg Sector Growth: {avg_sector_growth}, "
-         f"Country: {country}, Sector: {sector}, Education Level: {education_level}")
+# 5️⃣ Predictive Model and Input
+st.markdown("---")
+st.header("5️⃣ Predict Automation Impact")
+# Let the user input data for prediction
+input_data = {
+    'Country': st.selectbox("Select Country for Prediction", df['_id.Country'].unique(), key="input_country"),
+    'Sector': st.selectbox("Select Sector", df['_id.Sector'].unique(), key="input_sector"),
+    'Education Level': st.selectbox("Select Education Level", df['_id.EducationLevel'].unique(), key="input_edu"),
+    'Year': st.selectbox("Select Year", df['_id.Year'].unique(), key="input_year")
+}
 
-# Prediction Button
-if st.button("Make Prediction"):
-    prediction = make_prediction(year, avg_pre_ai, avg_post_ai, avg_ai_role_jobs, avg_reskilling_programs, avg_economic_impact, avg_sector_growth, country, sector, education_level)
-    st.write(f"Prediction: {prediction[0]}")
+# Prepare the input data for prediction
+input_df = pd.DataFrame([input_data])
 
-# Display Data Visualizations
-st.subheader("Visualizations")
+# Feature engineering for prediction (ensure it matches the model input features)
+# Here, you would transform input_df to have the same format as your training data
+# For simplicity, assume the model accepts these features directly
+# You may need to perform encoding, scaling, etc., based on your model training process
 
-# Line chart for trends over the years (Example)
-df_grouped = df.groupby('Year').mean()  # You can adjust this depending on your dataset
-st.line_chart(df_grouped['Avg_SectorGrowth'])  # Replace with the column you're interested in
+prediction = model.predict(input_df)  # Replace with your feature preprocessing if necessary
 
-# Bar plot for sector growth by country (Example)
-sector_growth_by_country = df.groupby(['Country', 'Sector'])['Avg_SectorGrowth'].mean().unstack()
-sector_growth_by_country.plot(kind='bar', figsize=(10, 6))
-st.pyplot()
+st.write(f"Predicted Automation Impact: {prediction[0]:.2f}")
 
-# Seaborn heatmap for correlations between features
-correlation_matrix = df.corr()
-plt.figure(figsize=(10, 6))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-st.pyplot()
+# 6️⃣ Export input + prediction
+st.markdown("---")
+if st.button("📁 Save Prediction to CSV"):
+    input_df['Predicted_Automation_Impact'] = prediction[0]
+    input_df.to_csv("saved_prediction.csv", index=False)
+    st.success("✅ Prediction saved to **saved_prediction.csv**")
 
-# Display DataFrame of the first few rows
-st.subheader("Dataset Preview")
-st.write(df.head())
-
+# Footer
+st.markdown("---")
+st.caption("📊 Developed by [Your Name] — Powered by Streamlit, XGBoost, Seaborn, Plotly")
