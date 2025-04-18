@@ -9,7 +9,7 @@ import joblib
 model = XGBRegressor()
 model.load_model("your_model.json")  # Replace with your model path
 
-df = pd.read_csv("your_dataset.csv")  # Replace with your CSV file path
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")# Replace with your CSV file path
 
 # --- Set Streamlit Page Config ---
 st.set_page_config(page_title="📊 Yearly Impact Prediction", layout="wide")
