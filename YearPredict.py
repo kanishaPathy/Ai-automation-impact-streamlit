@@ -1,67 +1,56 @@
 import streamlit as st
 import pandas as pd
-import joblib
-from xgboost import XGBRegressor
+import xgboost as xgb
+from sklearn.preprocessing import LabelEncoder
 
-# Load model and preprocessors
-model = XGBRegressor()
+# Load training data
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+
+# Create label encoders
+le_country = LabelEncoder()
+le_sector = LabelEncoder()
+le_edu = LabelEncoder()
+
+# Fit encoders
+df['Country_enc'] = le_country.fit_transform(df['Country'])
+df['Sector_enc'] = le_sector.fit_transform(df['Sector'])
+df['Education_enc'] = le_edu.fit_transform(df['EducationLevel'])
+
+# Features used in model
+features = ['Country_enc', 'Sector_enc', 'Education_enc', 'Year']
+
+# Load model
+model = xgb.XGBRegressor()
 model.load_model("xgb_model.json")
 
-label_encoders = joblib.load("label_encoders.pkl")
-expected_features = joblib.load("model_features.pkl")
+# Streamlit UI
+st.title("📈 Predict Automation Impact")
 
-# Sample data to test with (or load your actual cleaned dataset)
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")  # Make sure it contains _id.Year, _id.Country, etc.
+st.markdown("### Provide input below to predict automation impact level")
 
-st.set_page_config(page_title="📅 Year Prediction", layout="wide")
-st.title("📅 Predict Automation Impact for a Given Year")
+# Dropdowns populated from actual data
+country = st.selectbox("Select Country", sorted(df['Country'].unique()))
+sector = st.selectbox("Select Sector", sorted(df['Sector'].unique()))
+education = st.selectbox("Select Education Level", sorted(df['EducationLevel'].unique()))
+year = st.slider("Select Year", int(df['Year'].min()), int(df['Year'].max()), 2024)
 
-st.markdown("### Select Input Parameters")
-
-# UI layout
-col1, col2, col3, col4 = st.columns(4)
-
-year = col1.selectbox("Select Year", sorted(df['_id.Year'].unique()))
-country = col2.selectbox("Select Country", sorted(df['_id.Country'].unique()))
-sector = col3.selectbox("Select Sector", sorted(df['_id.Sector'].unique()))
-education = col4.selectbox("Select Education Level", sorted(df['_id.EducationLevel'].unique()))
-
-st.markdown("---")
-
-# Submit button
-if st.button("🚀 Predict Automation Impact"):
-
-    st.write(f"Analyzing impact for **{sector}** in **{country}** for year **{year}** with education level **{education}**.")
-
-    # Prepare input data
-    input_data = {
-        "_id.Year": [year],
-        "_id.Country": [country],
-        "_id.Sector": [sector],
-        "_id.EducationLevel": [education]
-    }
-
-    input_df = pd.DataFrame(input_data)
-
-    # Apply label encoders
-    for col in input_df.columns:
-        if col in label_encoders:
-            try:
-                input_df[col] = label_encoders[col].transform(input_df[col])
-            except ValueError as e:
-                st.error(f"Error: {e}")
-                st.stop()
-
-    # Reorder columns to match training
+if st.button("Predict Impact"):
     try:
-        input_df = input_df[expected_features]
-    except KeyError as e:
-        st.error(f"Column mismatch: {e}")
-        st.stop()
+        # Encode user inputs
+        input_data = {
+            "Country_enc": le_country.transform([country])[0],
+            "Sector_enc": le_sector.transform([sector])[0],
+            "Education_enc": le_edu.transform([education])[0],
+            "Year": year
+        }
 
-    # Make prediction
-    try:
+        input_df = pd.DataFrame([input_data])
+
+        # Predict
         prediction = model.predict(input_df)[0]
-        st.success(f"💡 Predicted Automation Impact: **{prediction:.2f}**")
+
+        st.success(f"📊 Predicted Automation Impact Level: **{prediction:.2f}**")
+
     except Exception as e:
-        st.error(f"Prediction failed: {e}")
+        st.error("❌ Error during prediction.")
+        st.exception(e)
