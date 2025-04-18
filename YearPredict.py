@@ -1,84 +1,82 @@
-import pandas as pd
-import joblib
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
+import pandas as pd
+import numpy as np
+from xgboost import XGBRegressor
 import plotly.express as px
-from sklearn.preprocessing import LabelEncoder
+import joblib
 
-# Load model and data
-model = joblib.load("xgboost_model.pkl")
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+# --- Load Model & Data ---
+model = XGBRegressor()
+model.load_model("your_model.json")  # Replace with your model path
 
-# Sample data (replace with your actual dataset)
-df = pd.DataFrame({
-    '_id.Country': ['USA', 'India', 'Ireland'],
-    '_id.Sector': ['IT', 'Retail', 'Finance'],
-    '_id.EducationLevel': ['Bachelors', 'Masters', 'PhD'],
-    '_id.Year': [2010, 2015, 2020],
-    'PreAI': [5, 6, 7],
-    'PostAI': [6, 7, 8],
-    'Automation_Impact': [0.3, 0.4, 0.5],
-    'AI_Role_Jobs': [100, 150, 120],
-    'Reskilling_Programs': [20, 30, 25],
-    'Economic_Impact': [500, 600, 550]
-})
+df = pd.read_csv("your_dataset.csv")  # Replace with your CSV file path
 
-# Sidebar for user inputs
-st.sidebar.title("🌍 Country Comparison")
-year = st.sidebar.selectbox("📅 Select Year", sorted(df['_id.Year'].unique()))
-country = st.sidebar.selectbox("🌍 Select Country", sorted(df['_id.Country'].unique()))
-sector = st.sidebar.selectbox("🏢 Select Sector", sorted(df['_id.Sector'].unique()))
-education = st.sidebar.selectbox("🎓 Select Education Level", sorted(df['_id.EducationLevel'].unique()))
+# --- Set Streamlit Page Config ---
+st.set_page_config(page_title="📊 Yearly Impact Prediction", layout="wide")
 
-submit_button = st.sidebar.button("Submit")
+st.title("📈 Yearly Impact of AI & Automation")
 
-if submit_button:
-    # Label Encoding
-    label_encoder_country = LabelEncoder()
-    label_encoder_sector = LabelEncoder()
-    label_encoder_education = LabelEncoder()
+st.markdown("Use the dropdowns below to select the parameters and predict automation impact for a specific year.")
 
-    df['_id.Country'] = label_encoder_country.fit_transform(df['_id.Country'])
-    df['_id.Sector'] = label_encoder_sector.fit_transform(df['_id.Sector'])
-    df['_id.EducationLevel'] = label_encoder_education.fit_transform(df['_id.EducationLevel'])
-
-    # Preparing input data
-    input_data = {
-        "_id.Year": year,
-        "_id.Country": label_encoder_country.transform([country])[0],
-        "_id.Sector": label_encoder_sector.transform([sector])[0],
-        "_id.EducationLevel": label_encoder_education.transform([education])[0],
-        "PreAI": df.loc[df['_id.Year'] == year, 'PreAI'].values[0],
-        "PostAI": df.loc[df['_id.Year'] == year, 'PostAI'].values[0],
-        "Automation_Impact": df.loc[df['_id.Year'] == year, 'Automation_Impact'].values[0],
-        "AI_Role_Jobs": df.loc[df['_id.Year'] == year, 'AI_Role_Jobs'].values[0],
-        "Reskilling_Programs": df.loc[df['_id.Year'] == year, 'Reskilling_Programs'].values[0],
-        "Economic_Impact": df.loc[df['_id.Year'] == year, 'Economic_Impact'].values[0]
-    }
-
-    input_df = pd.DataFrame([input_data])
-
-    # Predict automation impact
-    prediction = model.predict(input_df)[0]
-
-    # Visualization
-    fig = px.bar(df, x='_id.Sector', y='Automation_Impact', color='_id.Country',
-                 labels={'_id.Sector': 'Sector', 'Automation_Impact': 'Impact of Automation'},
-                 title=f"Impact of Automation by Sector in {year}")
+# --- Sidebar Filters ---
+with st.form("prediction_form"):
+    st.subheader("🎯 Select Input Parameters")
 
     col1, col2 = st.columns(2)
-
     with col1:
-        st.write(f"### Selected Inputs:")
-        st.write(f"**Year**: {year}")
-        st.write(f"**Country**: {country}")
-        st.write(f"**Sector**: {sector}")
-        st.write(f"**Education Level**: {education}")
-
+        year = st.selectbox("📅 Year", sorted(df['_id.Year'].unique()))
+        sector = st.selectbox("🏭 Sector", sorted(df['_id.Sector'].unique()))
     with col2:
-        st.write("### Impact Visualization:")
-        st.plotly_chart(fig)
+        country = st.selectbox("🌍 Country", sorted(df['_id.Country'].unique()))
+        education = st.selectbox("🎓 Education Level", sorted(df['_id.EducationLevel'].unique()))
 
-    st.write(f"### Predicted Automation Impact for {country} in {year}")
-    st.write(f"**Impact Level**: {prediction:.2f}")
+    submitted = st.form_submit_button("🔍 Predict Impact")
+
+# --- Prediction Logic ---
+if submitted:
+    try:
+        input_df = pd.DataFrame([{
+            "_id.Year": year,
+            "_id.Country": country,
+            "_id.Sector": sector,
+            "_id.EducationLevel": education
+        }])
+
+        # Encode categorical columns (using training label encoders if available)
+        label_encoders = joblib.load("label_encoders.pkl")  # Make sure you saved label encoders during training
+
+        for col in input_df.columns:
+            if col in label_encoders:
+                input_df[col] = label_encoders[col].transform(input_df[col])
+
+        prediction = model.predict(input_df)[0]
+
+        st.success(f"📌 Predicted Automation Impact for {sector} in {country} ({year}, {education}): `{prediction:.2f}`")
+
+        # Optional: Show matching records
+        filtered = df[
+            (df['_id.Year'] == year) &
+            (df['_id.Country'] == country) &
+            (df['_id.Sector'] == sector) &
+            (df['_id.EducationLevel'] == education)
+        ]
+
+        if not filtered.empty:
+            st.subheader("📂 Matching Data Sample")
+            st.dataframe(filtered)
+
+        # Optional Plot
+        st.subheader("📊 Country-wise Sector Comparison")
+        chart_df = df[df['_id.Year'] == year]
+        fig = px.bar(
+            chart_df,
+            x="_id.Sector",
+            y="Automation_Impact",
+            color="_id.Country",
+            barmode="group",
+            title="Automation Impact by Sector and Country"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"⚠️ Something went wrong: {str(e)}")
