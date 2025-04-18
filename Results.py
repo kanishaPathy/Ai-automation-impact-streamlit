@@ -1,71 +1,80 @@
 import pandas as pd
+import joblib
 import streamlit as st
-import joblib  # Assuming you're using joblib to load the model
+import plotly.express as px
 
-# Load your pre-trained model (ensure the model is in the correct path)
+# Load model and data
 model = joblib.load("xgboost_model.pkl")
- # Adjust the model file path
-
-# Sample data (replace with your actual dataset loading)
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
-# Check column names to ensure they are correct
-st.write(df.columns)  # This will help you identify column names
+st.set_page_config(page_title="AI Automation Impact", layout="wide")
+st.title("🤖 AI Automation Impact Prediction & Insights")
 
-# Set default values based on the data
-latest_year = sorted(df['_id.Year'].unique())[-1]  # Get the latest year
-default_country = df[df['_id.Year'] == latest_year]['_id.Country'].mode()[0]  # Most common country in the latest year
-default_sector = df[df['_id.Country'] == default_country]['_id.Sector'].mode()[0]  # Most common sector for the selected country
+# ---------- User Inputs Section ----------
+st.markdown("### 🎯 Enter Parameters for Prediction")
+col1, col2, col3, col4 = st.columns(4)
+year = col1.selectbox("Year", sorted(df['_id.Year'].unique()))
+country = col2.selectbox("Country", sorted(df['_id.Country'].unique()))
+sector = col3.selectbox("Sector", sorted(df['_id.Sector'].unique()))
+education = col4.selectbox("Education Level", sorted(df['_id.EducationLevel'].unique()))
 
-# Layout for user selections
-st.sidebar.header("Select Parameters")
-
-# Parameters for Year, Country, Sector, and Education Level
-year = st.sidebar.selectbox("Year", sorted(df['_id.Year'].unique()), index=len(sorted(df['_id.Year'].unique()))-1)  # Default to latest year
-country = st.sidebar.selectbox("Country", sorted(df['_id.Country'].unique()), index=sorted(df['_id.Country'].unique()).index(default_country))
-sector = st.sidebar.selectbox("Sector", sorted(df['_id.Sector'].unique()), index=sorted(df['_id.Sector'].unique()).index(default_sector))
-education_level = st.sidebar.selectbox("Education Level", sorted(df['Education_Level'].unique()))  # Assuming this column exists in your dataset
-
-# Extract dynamic values for sliders based on current trends from the dataset
-avg_pre_ai = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector) & (df['_id.Year'] == year)]['Avg_PreAI'].mean()
-avg_post_ai = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector) & (df['_id.Year'] == year)]['Avg_PostAI'].mean()
-avg_automation_impact = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector)]['Avg_Automation_Impact'].mean()
-avg_ai_roles = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector)]['Avg_AI_Role_Jobs'].mean()
-avg_reskill = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector)]['Avg_ReskillingPrograms'].mean()
-avg_economic_impact = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector)]['Avg_EconomicImpact'].mean()
-avg_sector_growth = df[(df['_id.Country'] == country) & (df['_id.Sector'] == sector)]['Avg_SectorGrowth'].mean()
-
-# Display sliders with calculated values as default values
-st.sidebar.header("Adjust Parameters Based on Trends")
-
-pre_ai = st.sidebar.slider("Pre-AI Impact (%)", 0, 100, int(avg_pre_ai))  # Set based on current data
-post_ai = st.sidebar.slider("Post-AI Impact (%)", 0, 100, int(avg_post_ai))  # Set based on current data
-automation_impact = st.sidebar.slider("Automation Impact (%)", 0, 100, int(avg_automation_impact))
-ai_roles = st.sidebar.slider("AI Role Jobs (%)", 0, 100, int(avg_ai_roles))
-reskill = st.sidebar.slider("Reskilling Programs (%)", 0, 100, int(avg_reskill))
-econ_impact = st.sidebar.slider("Economic Impact (%)", 0, 100, int(avg_economic_impact))
-sector_growth = st.sidebar.slider("Sector Growth (%)", 0, 100, int(avg_sector_growth))
-
-# Now you can display results based on these inputs
-st.header("Analysis Results")
-
-# You can use the sliders to perform predictions or generate insights
+# Prepare input data for prediction
 input_df = pd.DataFrame({
     '_id.Country': [country],
     '_id.Sector': [sector],
     '_id.Year': [year],
-    'Avg_PreAI': [pre_ai],
-    'Avg_PostAI': [post_ai],
-    'Avg_Automation_Impact': [automation_impact],
-    'Avg_AI_Role_Jobs': [ai_roles],
-    'Avg_ReskillingPrograms': [reskill],
-    'Avg_EconomicImpact': [econ_impact],
-    'Avg_SectorGrowth': [sector_growth]
+    '_id.EducationLevel': [education],
 })
 
-# Prediction or analysis based on input_df
-prediction = model.predict(input_df)  # Assuming you have your model loaded
+# Encoding and predictions
+X_train = df.drop(columns=['Avg_Automation_Impact'])
+X_encoded = pd.get_dummies(X_train)
+input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
-# Show prediction results
-st.write(f"Prediction for the year {year}, country {country}, sector {sector}, education level {education_level}:")
-st.write(f"Predicted Impact: {prediction[0]}")  # Show the first prediction if it's an array
+with st.spinner("Predicting Automation Impact..."):
+    prediction = model.predict(input_encoded)[0]
+
+st.success(f"🔮 Predicted Automation Impact Score: **{prediction:.2f}**")
+
+# ---------- Visualization Section ----------
+# Country Comparison Visualization
+st.markdown("---")
+st.header("🌍 Country Comparison")
+cols = st.columns(2)
+country1 = cols[0].selectbox("Select First Country", df['_id.Country'].unique(), key='country1')
+country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Country'].unique() if c != country1], key='country2')
+
+compare_df = df[df['_id.Country'].isin([country1, country2])]
+fig1 = px.bar(compare_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Country',
+              title=f'Automation Impact: {country1} vs {country2}',
+              barmode='group', height=400)
+st.plotly_chart(fig1, use_container_width=True)
+
+# Unemployment Over Time Visualization
+st.markdown("---")
+st.header("📈 Unemployment Trend Over Time")
+unemp = df.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig2 = px.line(unemp, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
+               labels={'value': 'Impact Score', 'variable': 'Impact Type'},
+               title='Unemployment Impact (Pre-AI vs Post-AI) Over Years')
+st.plotly_chart(fig2, use_container_width=True)
+
+# Sector-wise Trend Visualization
+st.markdown("---")
+st.header("🏭 Sector-wise Unemployment Comparison")
+sector_selected = st.selectbox("Select Sector", df['_id.Sector'].unique(), key='sector_analysis')
+df_sec = df[df['_id.Sector'] == sector_selected].groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
+              barmode='group', title=f'Unemployment Trend in {sector_selected}')
+st.plotly_chart(fig3, use_container_width=True)
+
+# Export Prediction Option
+st.markdown("---")
+if st.button("💾 Save Prediction to CSV"):
+    input_df['Predicted_Automation_Impact'] = prediction
+    input_df.to_csv("saved_prediction.csv", index=False)
+    st.success("📁 Prediction saved to **saved_prediction.csv**")
+
+# Footer
+st.markdown("---")
+st.caption("📊 Built with ❤️ by Kanisha Pathy | Powered by Streamlit + Plotly + XGBoost")
