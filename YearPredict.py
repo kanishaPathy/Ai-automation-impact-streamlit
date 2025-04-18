@@ -1,82 +1,67 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from xgboost import XGBRegressor
-import plotly.express as px
 import joblib
+from xgboost import XGBRegressor
 
-# --- Load Model & Data ---
+# Load model and preprocessors
 model = XGBRegressor()
-model.load_model("your_model.json")  # Replace with your model path
+model.load_model("xgb_model.json")
 
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")# Replace with your CSV file path
+label_encoders = joblib.load("label_encoders.pkl")
+expected_features = joblib.load("model_features.pkl")
 
-# --- Set Streamlit Page Config ---
-st.set_page_config(page_title="📊 Yearly Impact Prediction", layout="wide")
+# Sample data to test with (or load your actual cleaned dataset)
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")  # Make sure it contains _id.Year, _id.Country, etc.
 
-st.title("📈 Yearly Impact of AI & Automation")
+st.set_page_config(page_title="📅 Year Prediction", layout="wide")
+st.title("📅 Predict Automation Impact for a Given Year")
 
-st.markdown("Use the dropdowns below to select the parameters and predict automation impact for a specific year.")
+st.markdown("### Select Input Parameters")
 
-# --- Sidebar Filters ---
-with st.form("prediction_form"):
-    st.subheader("🎯 Select Input Parameters")
+# UI layout
+col1, col2, col3, col4 = st.columns(4)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        year = st.selectbox("📅 Year", sorted(df['_id.Year'].unique()))
-        sector = st.selectbox("🏭 Sector", sorted(df['_id.Sector'].unique()))
-    with col2:
-        country = st.selectbox("🌍 Country", sorted(df['_id.Country'].unique()))
-        education = st.selectbox("🎓 Education Level", sorted(df['_id.EducationLevel'].unique()))
+year = col1.selectbox("Select Year", sorted(df['_id.Year'].unique()))
+country = col2.selectbox("Select Country", sorted(df['_id.Country'].unique()))
+sector = col3.selectbox("Select Sector", sorted(df['_id.Sector'].unique()))
+education = col4.selectbox("Select Education Level", sorted(df['_id.EducationLevel'].unique()))
 
-    submitted = st.form_submit_button("🔍 Predict Impact")
+st.markdown("---")
 
-# --- Prediction Logic ---
-if submitted:
-    try:
-        input_df = pd.DataFrame([{
-            "_id.Year": year,
-            "_id.Country": country,
-            "_id.Sector": sector,
-            "_id.EducationLevel": education
-        }])
+# Submit button
+if st.button("🚀 Predict Automation Impact"):
 
-        # Encode categorical columns (using training label encoders if available)
-        label_encoders = joblib.load("label_encoders.pkl")  # Make sure you saved label encoders during training
+    st.write(f"Analyzing impact for **{sector}** in **{country}** for year **{year}** with education level **{education}**.")
 
-        for col in input_df.columns:
-            if col in label_encoders:
+    # Prepare input data
+    input_data = {
+        "_id.Year": [year],
+        "_id.Country": [country],
+        "_id.Sector": [sector],
+        "_id.EducationLevel": [education]
+    }
+
+    input_df = pd.DataFrame(input_data)
+
+    # Apply label encoders
+    for col in input_df.columns:
+        if col in label_encoders:
+            try:
                 input_df[col] = label_encoders[col].transform(input_df[col])
+            except ValueError as e:
+                st.error(f"Error: {e}")
+                st.stop()
 
+    # Reorder columns to match training
+    try:
+        input_df = input_df[expected_features]
+    except KeyError as e:
+        st.error(f"Column mismatch: {e}")
+        st.stop()
+
+    # Make prediction
+    try:
         prediction = model.predict(input_df)[0]
-
-        st.success(f"📌 Predicted Automation Impact for {sector} in {country} ({year}, {education}): `{prediction:.2f}`")
-
-        # Optional: Show matching records
-        filtered = df[
-            (df['_id.Year'] == year) &
-            (df['_id.Country'] == country) &
-            (df['_id.Sector'] == sector) &
-            (df['_id.EducationLevel'] == education)
-        ]
-
-        if not filtered.empty:
-            st.subheader("📂 Matching Data Sample")
-            st.dataframe(filtered)
-
-        # Optional Plot
-        st.subheader("📊 Country-wise Sector Comparison")
-        chart_df = df[df['_id.Year'] == year]
-        fig = px.bar(
-            chart_df,
-            x="_id.Sector",
-            y="Automation_Impact",
-            color="_id.Country",
-            barmode="group",
-            title="Automation Impact by Sector and Country"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
+        st.success(f"💡 Predicted Automation Impact: **{prediction:.2f}**")
     except Exception as e:
-        st.error(f"⚠️ Something went wrong: {str(e)}")
+        st.error(f"Prediction failed: {e}")
