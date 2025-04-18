@@ -105,14 +105,21 @@ fig5 = px.bar(filter_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Y
               title=f'{country_vs} vs {"All Sectors" if sector_vs == "All" else sector_vs} Impact Comparison')
 st.plotly_chart(fig5, use_container_width=True)
 
-# Gender Distribution in IT vs Retail (Assuming Gender_Distribution column exists in skill_df)
+# Gender Distribution in IT vs Retail (Assuming Gender_Distribution column exists in df2)
 st.markdown("---")
 st.header("👩‍💻 Gender Distribution in IT vs Retail")
-gender_df = skill_df[skill_df['Sector'].isin(['IT', 'Retail'])]
-gender_df = gender_df.groupby(['Sector', 'Gender_Distribution']).size().reset_index(name='Count')
-fig6 = px.bar(gender_df, x='Sector', y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
-st.plotly_chart(fig6, use_container_width=True)
 
+# Use df2 (reskilling dataset) instead of skill_df
+gender_df = df2[df2['_id.Sector'].isin(['IT', 'Retail'])]
+
+# Ensure that 'Gender_Distribution' column exists
+if 'Gender_Distribution' not in gender_df.columns:
+    st.error("The 'Gender_Distribution' column is missing from the dataset.")
+else:
+    gender_df = gender_df.groupby(['_id.Sector', 'Gender_Distribution']).size().reset_index(name='Count')
+    fig6 = px.bar(gender_df, x='_id.Sector', y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
+    st.plotly_chart(fig6, use_container_width=True)
+    
 # Skill Level Impact based on PreAI vs PostAI
 st.markdown("---")
 st.header("💼 Skill Level Impact")
