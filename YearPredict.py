@@ -4,7 +4,6 @@ import numpy as np
 import joblib
 from PIL import Image
 
-model = joblib.load("xgboost_model.pkl")
 
 # Page config
 st.set_page_config(
@@ -63,8 +62,8 @@ if '_id' in df.columns and isinstance(df['_id'].iloc[0], str) == False:
     df['_id.EducationLevel'] = df['_id'].apply(lambda x: x.get('EducationLevel'))
 
 # Load model
-try:
-    model = joblib.load("models/xgboost_automation_model.pkl")
+try:  
+    model = joblib.load("xgboost_model.pkl")
 except Exception as e:
     st.error("Model file not found. Please ensure 'xgboost_automation_model.pkl' is in the 'models' folder.")
     st.stop()
