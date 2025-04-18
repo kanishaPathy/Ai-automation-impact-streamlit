@@ -3,6 +3,9 @@ import joblib
 import streamlit as st
 import plotly.express as px
 
+# Set the page config at the very beginning
+st.set_page_config(page_title="AI Automation Impact", layout="wide")
+
 # Load model and data
 model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
@@ -14,7 +17,6 @@ if 'Gender_Distribution' not in skill_df.columns:
 else:
     st.success("Gender_Distribution column found!")
 
-st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
 # ---------- User Inputs Section ----------
