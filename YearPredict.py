@@ -7,6 +7,10 @@ from streamlit_lottie import st_lottie
 import json
 import os
 
+
+model = joblib.load("xgboost_model.pkl")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+
 # Page config
 st.set_page_config(page_title="AI & Automation Impact Predictor", layout="wide")
 
