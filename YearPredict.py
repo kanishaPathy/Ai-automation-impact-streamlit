@@ -7,6 +7,8 @@ from PIL import Image
 import json
 import requests
 
+model = joblib.load("xgboost_model.pkl")
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 # Optional: Lottie animation (make sure to install streamlit-lottie)
 try:
     from streamlit_lottie import st_lottie
