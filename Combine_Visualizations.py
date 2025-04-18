@@ -60,41 +60,28 @@ fig2 = px.line(unemp, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
                title=f'Unemployment Impact (Pre-AI vs Post-AI) from {year_range[0]} to {year_range[1]}')
 st.plotly_chart(fig2, use_container_width=True)
 
-# Sector-wise Trend Visualization
+# ---------- Gender Distribution Section ----------
 st.markdown("---")
-st.header("🏭 Sector-wise Unemployment Comparison")
-sector_selected = st.selectbox("Select Sector", df['_id.Sector'].unique(), key='sector_analysis')
-df_sec = df[(df['_id.Sector'] == sector_selected) & (df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
-df_sec = df_sec.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
-              barmode='group', title=f'Unemployment Trend in {sector_selected} ({year_range[0]} - {year_range[1]})')
-st.plotly_chart(fig3, use_container_width=True)
+st.header("👩‍💻 Gender Distribution and Sector Analysis")
 
-# Education Level Impact Visualization
+# Gender selection (Male / Female) and sector selection
+gender = st.selectbox("Select Gender", ["Male", "Female"], key="gender")
+sector_gender = st.selectbox("Select Sector", sorted(df['_id.Sector'].unique()), key="sector_gender")
+
+# Filter data based on gender and sector
+gender_filtered_df = skill_df[(skill_df['Gender_Distribution'] == gender) & (skill_df['_id.Sector'] == sector_gender)]
+
+# Visualize Gender Distribution Impact
+fig_gender = px.bar(gender_filtered_df, x='Skill_Level', y='Automation_Impact_Level', color='Education_Level',
+                    title=f"Impact of Automation by Gender ({gender}) in Sector: {sector_gender}",
+                    labels={'Automation_Impact_Level': 'Automation Impact Level', 'Skill_Level': 'Skill Level'},
+                    height=400)
+st.plotly_chart(fig_gender, use_container_width=True)
+
+# ---------- Skill Level Impact Visualization ----------
 st.markdown("---")
-st.header("🎓 Education Level Impact")
-edu_impact = df[(df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
-edu_impact = edu_impact.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig4 = px.bar(edu_impact, x='_id.EducationLevel', y=['Avg_PreAI', 'Avg_PostAI'],
-              barmode='group', title='Education Level vs AI Impact')
-st.plotly_chart(fig4, use_container_width=True)
+st.header("🎓 Skill Level Impact on PreAI vs PostAI")
 
-# Country vs All Sectors Comparison
-st.markdown("---")
-st.header("🌐 Country vs Sector Comparison")
-col_c1, col_c2 = st.columns(2)
-country_vs = col_c1.selectbox("Select Country", df['_id.Country'].unique(), key='country_vs')
-sector_vs = col_c2.selectbox("Compare With Sector (Optional)", ['All'] + list(df['_id.Sector'].unique()), key='sector_vs')
-
-filter_df = df[(df['_id.Country'] == country_vs) & (df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
-if sector_vs != 'All':
-    filter_df = filter_df[filter_df['_id.Sector'] == sector_vs]
-
-fig5 = px.bar(filter_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Year',
-              title=f'{country_vs} vs {"All Sectors" if sector_vs == "All" else sector_vs} Impact Comparison')
-st.plotly_chart(fig5, use_container_width=True)
-
-# Skill Level Impact Visualization
 # Ensure 'Automation_Impact_Level' is numeric (convert non-numeric to NaN and handle them)
 skill_df['Automation_Impact_Level'] = pd.to_numeric(skill_df['Automation_Impact_Level'], errors='coerce')
 skill_df['Automation_Impact_Level'].fillna(0, inplace=True)
