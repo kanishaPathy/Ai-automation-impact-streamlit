@@ -1,132 +1,106 @@
 import streamlit as st
+from PIL import Image
 import pandas as pd
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
-from PIL import Image
 import json
-import requests
+from streamlit_lottie import st_lottie
 
-model = joblib.load("xgboost_model.pkl")
-# Optional: Lottie animation (make sure to install streamlit-lottie)
-try:
-    from streamlit_lottie import st_lottie
-    def load_lottie_url(url):
-        r = requests.get(url)
-        if r.status_code != 200:
-            return None
-        return r.json()
-    lottie_ai = load_lottie_url("https://assets2.lottiefiles.com/packages/lf20_kyu7xb1v.json")  # AI animation
-except ImportError:
-    lottie_ai = None
+st.set_page_config(page_title="AI Automation Impact Predictor", layout="wide")
 
-# ---------- Layout Setup ----------
-st.set_page_config(page_title="AI Impact Predictor", layout="wide")
+# Load Lottie animation
+def load_lottie(filepath: str):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
-# Sidebar with logo or Lottie animation
-with st.sidebar:
-    if lottie_ai:
-        st_lottie(lottie_ai, height=200)
-    else:
-        image = Image.open("ai_icon.png")
-        st.image(image, use_column_width=True)
+# Load assets
+lottie_ai = load_lottie("ai_lottie.json")  # You must have this JSON animation file
+image = Image.open("ai_icon.png")          # Tech-themed image
 
-    st.title("⚙️ Predict Automation Impact")
-    st.markdown("Explore how AI & automation influence employment trends.")
+# Load model
+model = joblib.load("models/xgboost_automation_model.pkl")
 
-# ---------- Load Data ----------
-# ---------- Load Data ----------
+# Load CSV
 try:
     df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 except FileNotFoundError:
-    st.error("CSV file not found. Please make sure the file name and path are correct.")
+    st.error("CSV file not found. Please check the file path.")
     st.stop()
 
-# Flatten '_id' if it's from MongoDB
-if '_id' in data.columns and isinstance(data['_id'].iloc[0], str) == False:
-    _id_df = pd.json_normalize(data['_id'])
-    data = data.drop(columns=['_id']).join(_id_df)
+# Flatten _id if needed
+if '_id' in df.columns and isinstance(df['_id'].iloc[0], str) == False:
+    df = pd.concat([df.drop(columns=['_id']), df['_id'].apply(pd.Series)], axis=1)
 
-# Display columns for debug
-# st.write("Available columns:", data.columns.tolist())
+# Sidebar layout
+with st.sidebar:
+    st_lottie(lottie_ai, height=200)
+    st.image(image, width=150)
+    st.markdown("### Navigate")
+    st.page_link("YearPredict.py", label="📊 Yearly Impact Prediction", disabled=True)
 
-# ---------- Filters ----------
-st.markdown("### 🔍 Select Filters Below")
+# Main layout
+st.markdown(
+    "<h1 style='font-size: 50px; color: #4A90E2;'>🔮 Predict AI & Automation Impact</h1>", 
+    unsafe_allow_html=True
+)
+st.markdown("##### Fill in the details below to predict future automation impact in your sector.")
 
-col1, col2, col3 = st.columns(3)
+# Input selections
+with st.form("predict_form"):
+    cols = st.columns(2)
 
-with col1:
-    countries = sorted(data['Country'].unique())
-    selected_country = st.selectbox("🌍 Country", countries)
+    country = cols[0].selectbox("Country", sorted(df['Country'].dropna().unique()))
+    sector = cols[1].selectbox("Sector", sorted(df['Sector'].dropna().unique()))
+    
+    year = cols[0].selectbox("Year", sorted(df['Year'].dropna().unique()))
+    education_level = cols[1].selectbox("Education Level", sorted(df['EducationLevel'].dropna().unique()))
 
-with col2:
-    sectors = sorted(data['Sector'].unique())
-    selected_sector = st.selectbox("🏭 Sector", sectors)
+    avg_pre_ai = st.slider("Average Pre-AI Unemployment", 0.0, 100.0, 50.0)
+    avg_post_ai = st.slider("Average Post-AI Unemployment", 0.0, 100.0, 50.0)
+    avg_automation_impact = st.slider("Automation Impact (%)", 0.0, 100.0, 50.0)
+    avg_ai_role_jobs = st.slider("AI Role Jobs (%)", 0.0, 100.0, 50.0)
+    avg_reskilling_programs = st.slider("Reskilling Programs Availability (%)", 0.0, 100.0, 50.0)
+    avg_economic_impact = st.slider("Economic Impact Score", 0.0, 100.0, 50.0)
+    avg_sector_growth = st.slider("Sector Growth (%)", 0.0, 100.0, 50.0)
 
-with col3:
-    education_levels = sorted(data['EducationLevel'].unique())
-    selected_education = st.selectbox("🎓 Education Level", education_levels)
+    submit_btn = st.form_submit_button("🚀 Predict Impact")
 
-# Slider for year
-years = sorted(data['Year'].unique())
-selected_year = st.slider("📅 Year", min_value=int(min(years)), max_value=int(max(years)), step=1)
+if submit_btn:
+    # Prepare input for model
+    input_data = pd.DataFrame({
+        '_id.Country': [country],
+        '_id.Sector': [sector],
+        '_id.Year': [year],
+        '_id.EducationLevel': [education_level],
+        'Avg_PreAI': [avg_pre_ai],
+        'Avg_PostAI': [avg_post_ai],
+        'Avg_Automation_Impact': [avg_automation_impact],
+        'Avg_AI_Role_Jobs': [avg_ai_role_jobs],
+        'Avg_ReskillingPrograms': [avg_reskilling_programs],
+        'Avg_EconomicImpact': [avg_economic_impact],
+        'Avg_SectorGrowth': [avg_sector_growth]
+    })
 
-# ---------- Filter Data ----------
-filtered_data = data[
-    (data['Country'] == selected_country) &
-    (data['Sector'] == selected_sector) &
-    (data['EducationLevel'] == selected_education)
-]
+    # One-hot encoding if needed (depends on how the model was trained)
+    input_encoded = pd.get_dummies(input_data)
+    model_columns = model.get_booster().feature_names
+    for col in model_columns:
+        if col not in input_encoded.columns:
+            input_encoded[col] = 0
+    input_encoded = input_encoded[model_columns]
 
-if filtered_data.empty:
-    st.warning("No data found for the selected filters.")
-    st.stop()
+    # Make prediction
+    prediction = model.predict(input_encoded)[0]
 
-# ---------- Predict Button ----------
-st.markdown("### 📊 Predicted Impact of Automation & AI")
+    # Display result
+    st.success(f"✅ Predicted Automation Impact for {year}: **{round(prediction, 2)}%**")
 
-model_features = [
-    'Avg_PreAI',
-    'Avg_PostAI',
-    'Avg_Automation_Impact',
-    'Avg_AI_Role_Jobs',
-    'Avg_ReskillingPrograms',
-    'Avg_EconomicImpact',
-    'Avg_SectorGrowth'
-]
+    st.markdown("---")
+    st.markdown("### 📈 Analysis")
+    st.write("Compare this result to previous trends using your dataset or visualize it below.")
 
-input_row = filtered_data[filtered_data['Year'] == selected_year]
-
-if input_row.empty:
-    st.warning("No data found for the selected year. Please try a different year.")
-    st.stop()
-
-X_input = input_row[model_features]
-
-# Load model
-try:
-    model = joblib.load("models/xgboost_automation_model.pkl")
-    predicted_impact = model.predict(X_input)[0]
-    st.success(f"📈 Predicted Automation Impact Score for {selected_year}: **{predicted_impact:.2f}**")
-except FileNotFoundError:
-    st.error("Model file not found. Please upload `xgboost_automation_model.pkl` in `models/` directory.")
-    st.stop()
-
-# ---------- Line Chart ----------
-st.markdown("### 📈 Automation Impact Trend Over Time")
-
-trend_data = filtered_data.sort_values(by='Year')
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(trend_data['Year'], trend_data['Avg_PreAI'], label="Pre-AI Unemployment", linestyle='--', marker='o')
-ax.plot(trend_data['Year'], trend_data['Avg_PostAI'], label="Post-AI Unemployment", linestyle='-', marker='o')
-ax.plot(trend_data['Year'], trend_data['Avg_Automation_Impact'], label="Automation Impact", linestyle='-', marker='x')
-
-ax.set_xlabel("Year")
-ax.set_ylabel("Impact Score")
-ax.set_title(f"Trends in {selected_country} - {selected_sector}")
-ax.legend()
-st.pyplot(fig)
-
-# ---------- Footer ----------
-st.markdown("---")
-st.markdown("Made with ❤️ for AI & Automation Impact Analysis")
+    st.bar_chart(pd.DataFrame({
+        "Predicted Impact": [prediction],
+        "Sector Growth": [avg_sector_growth],
+        "AI Role Jobs": [avg_ai_role_jobs]
+    }))
