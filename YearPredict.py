@@ -5,16 +5,18 @@ import numpy as np
 import joblib
 import json
 from streamlit_lottie import st_lottie
+import requests
 
 st.set_page_config(page_title="AI Automation Impact Predictor", layout="wide")
 
-# Load Lottie animation
-def load_lottie(filepath: str):
-    with open(filepath, "r") as f:
-        return json.load(f)
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
-# Load assets
-lottie_ai = load_lottie("ai_lottie.json")  # You must have this JSON animation file
+lottie_ai = load_lottieurl("https://assets1.lottiefiles.com/packages/lf20_2glqweqs.json")
+# You must have this JSON animation file
 image = Image.open("ai_icon.png")          # Tech-themed image
 
 # Load model
