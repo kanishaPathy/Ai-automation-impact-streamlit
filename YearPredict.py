@@ -115,4 +115,16 @@ st.markdown("### 📈 Automation Impact Trend Over Time")
 
 trend_data = filtered_data.sort_values(by='Year')
 fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(trend_data['Year'], trend_
+ax.plot(trend_data['Year'], trend_data['Avg_PreAI'], label="Pre-AI Unemployment", linestyle='--', marker='o')
+ax.plot(trend_data['Year'], trend_data['Avg_PostAI'], label="Post-AI Unemployment", linestyle='-', marker='o')
+ax.plot(trend_data['Year'], trend_data['Avg_Automation_Impact'], label="Automation Impact", linestyle='-', marker='x')
+
+ax.set_xlabel("Year")
+ax.set_ylabel("Impact Score")
+ax.set_title(f"Trends in {selected_country} - {selected_sector}")
+ax.legend()
+st.pyplot(fig)
+
+# ---------- Footer ----------
+st.markdown("---")
+st.markdown("Made with ❤️ for AI & Automation Impact Analysis")
