@@ -57,6 +57,20 @@ with st.spinner("Predicting Automation Impact..."):
 
 st.success(f"🔮 Predicted Automation Impact Score: **{prediction:.2f}**")
 
+# ---------- File Upload ----------
+st.markdown("---")
+st.header("📂 Upload Your Own Dataset")
+
+uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+
+if uploaded_file is not None:
+    new_data = pd.read_csv(uploaded_file)
+    st.write("Dataset Loaded Successfully!")
+    st.write(new_data.head())  # Preview first few rows of the uploaded data
+    df = new_data  # Re-load the data
+else:
+    st.info("Upload a CSV file to begin.")
+
 # ---------- Comparison Section ----------
 st.markdown("---")
 st.header("🌍 Country Comparison")
@@ -88,55 +102,38 @@ fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
               barmode='group', title=f'Unemployment Trend in {sector_selected}')
 st.plotly_chart(fig3, use_container_width=True)
 
-# ---------- Education Level Impact Section ----------
+# ---------- Sector and Country Trend Comparisons ----------
 st.markdown("---")
-st.header("🎓 Education Level vs Automation Impact")
+st.header("🔍 Compare Similar Sectors or Trends")
 
-# ✅ Step 1: Check if required columns exist in the main dataframe
-required_columns = ['_id.EducationLevel', 'Avg_Automation_Impact']
-if all(col in df.columns for col in required_columns):
+# Select Country for comparison
+compare_country = st.selectbox("Select Country for Trend Analysis", df['_id.Country'].unique(), key="compare_country")
 
-    # ✅ Step 2: Filter necessary columns and drop missing values
-    edu_df = df[['_id.EducationLevel', 'Avg_Automation_Impact']].dropna()
+# Filter dataset for the selected country
+country_data = df[df['_id.Country'] == compare_country]
 
-    if not edu_df.empty:
-        # ✅ Step 3: Group and calculate percentiles
-        try:
-            edu_percentiles = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'] \
-                                     .quantile([0.25, 0.5, 0.75]) \
-                                     .unstack().reset_index()
+# Optionally filter by sector, else show overall trends
+sector_to_compare = st.selectbox("Select Sector for Comparison", ["All Sectors"] + sorted(df['_id.Sector'].unique()), key="sector_compare")
 
-            edu_percentiles.columns = ['Education Level', '25th Percentile', '50th Percentile (Median)', '75th Percentile']
+if sector_to_compare != "All Sectors":
+    country_data = country_data[country_data['_id.Sector'] == sector_to_compare]
 
-            # ✅ Step 4: Percentile Distribution Plot
-            fig_percentiles = px.bar(edu_percentiles,
-                                     x='Education Level',
-                                     y=['25th Percentile', '50th Percentile (Median)', '75th Percentile'],
-                                     title="Percentile Distribution of Automation Impact by Education Level",
-                                     labels={'value': 'Automation Impact'},
-                                     barmode='group',
-                                     color_discrete_sequence=px.colors.sequential.Plasma)
-            st.plotly_chart(fig_percentiles, use_container_width=True)
+# Plot comparison of sector trends (e.g., PreAI vs PostAI)
+sector_trends = country_data.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
 
-        except Exception as e:
-            st.error(f"❌ Error while calculating percentiles: {e}")
+fig_sector_trends = px.line(sector_trends, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
+                            labels={'value': 'Impact Score', 'variable': 'Impact Type'},
+                            title=f'Sector Impact Over Time in {compare_country}' if sector_to_compare == "All Sectors" 
+                            else f'{sector_to_compare} Impact Over Time in {compare_country}')
+st.plotly_chart(fig_sector_trends, use_container_width=True)
 
-        # ✅ Step 5: Average Impact Horizontal Bar Chart
-        edu_avg = edu_df.groupby('_id.EducationLevel')['Avg_Automation_Impact'].mean().reset_index()
+# Compare more sectors
+sector_comparison = df.groupby(['_id.Country', '_id.Sector', '_id.Year'])[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
 
-        fig_avg = px.bar(edu_avg,
-                         y='_id.EducationLevel',
-                         x='Avg_Automation_Impact',
-                         orientation='h',
-                         title="Average Automation Impact by Education Level",
-                         color='Avg_Automation_Impact',
-                         color_continuous_scale='Viridis')
-        st.plotly_chart(fig_avg, use_container_width=True)
-
-    else:
-        st.warning("⚠️ No data available after removing missing values.")
-else:
-    st.error("❗ Required columns '_id.EducationLevel' or 'Avg_Automation_Impact' not found in the dataset.")
+fig_comparison = px.line(sector_comparison, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
+                         color='_id.Sector', line_group='_id.Country', markers=True,
+                         title=f'Comparison of AI Automation Impact Across Sectors and Countries')
+st.plotly_chart(fig_comparison, use_container_width=True)
 
 # ---------- Export Prediction ----------
 st.markdown("---")
