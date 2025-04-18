@@ -3,20 +3,12 @@ import joblib
 import streamlit as st
 import plotly.express as px
 
-# Set the page config at the very beginning
-st.set_page_config(page_title="AI Automation Impact", layout="wide")
-
 # Load model and data
 model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 skill_df = pd.read_csv("reskilling_dataset_cleaned.csv")
 
-# Check if 'Gender_Distribution' column exists
-if 'Gender_Distribution' not in skill_df.columns:
-    st.error("The 'Gender_Distribution' column is missing in the reskilling dataset.")
-else:
-    st.success("Gender_Distribution column found!")
-
+st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
 # ---------- User Inputs Section ----------
@@ -68,50 +60,46 @@ fig2 = px.line(unemp, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
                title=f'Unemployment Impact (Pre-AI vs Post-AI) from {year_range[0]} to {year_range[1]}')
 st.plotly_chart(fig2, use_container_width=True)
 
-# ---------- Gender Distribution Section ----------
+# Sector-wise Trend Visualization
 st.markdown("---")
-st.header("👩‍💻 Gender Distribution and Sector Analysis")
+st.header("🏭 Sector-wise Unemployment Comparison")
+sector_selected = st.selectbox("Select Sector", df['_id.Sector'].unique(), key='sector_analysis')
+df_sec = df[(df['_id.Sector'] == sector_selected) & (df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
+df_sec = df_sec.groupby('_id.Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig3 = px.bar(df_sec, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI'],
+              barmode='group', title=f'Unemployment Trend in {sector_selected} ({year_range[0]} - {year_range[1]})')
+st.plotly_chart(fig3, use_container_width=True)
 
-# Gender selection (Male / Female) and sector selection
-gender = st.selectbox("Select Gender", ["Male", "Female"], key="gender")
-sector_gender = st.selectbox("Select Sector", sorted(skill_df['Sector'].unique()), key="sector_gender")
-
-# Filter data based on gender and sector
-gender_filtered_df = skill_df[(skill_df['Gender_Distribution'] == gender) & (skill_df['Sector'] == sector_gender)]
-
-if gender_filtered_df.empty:
-    st.warning(f"No data available for gender: {gender} and sector: {sector_gender}. Please try other selections.")
-else:
-    # Visualize Gender Distribution Impact
-    fig_gender = px.bar(gender_filtered_df, x='Skill_Level', y='Automation_Impact_Level', color='Education_Level',
-                        title=f"Impact of Automation by Gender ({gender}) in Sector: {sector_gender}",
-                        labels={'Automation_Impact_Level': 'Automation Impact Level', 'Skill_Level': 'Skill Level'},
-                        height=400)
-    st.plotly_chart(fig_gender, use_container_width=True)
-
-# ---------- Skill Level Impact Visualization ----------
+# Education Level Impact Visualization
 st.markdown("---")
-st.header("🎓 Skill Level Impact on PreAI vs PostAI")
+st.header("🎓 Education Level Impact")
+edu_impact = df[(df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
+edu_impact = edu_impact.groupby('_id.EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig4 = px.bar(edu_impact, x='_id.EducationLevel', y=['Avg_PreAI', 'Avg_PostAI'],
+              barmode='group', title='Education Level vs AI Impact')
+st.plotly_chart(fig4, use_container_width=True)
 
+# Skill Level Impact (Reskilling Dataset)
+st.markdown("---")
+st.header("💼 Skill Level Impact")
 # Ensure 'Automation_Impact_Level' is numeric (convert non-numeric to NaN and handle them)
 skill_df['Automation_Impact_Level'] = pd.to_numeric(skill_df['Automation_Impact_Level'], errors='coerce')
 skill_df['Automation_Impact_Level'].fillna(0, inplace=True)
-
-# If 'Skill_Level' contains any missing or unexpected values, we can also handle that
-skill_df['Skill_Level'].fillna('Unknown', inplace=True)
 
 # Simulate PreAI and PostAI scores based on Automation_Impact_Level
 skill_df['Avg_PreAI'] = skill_df['Automation_Impact_Level'] * 0.6  # Simulated example
 skill_df['Avg_PostAI'] = skill_df['Automation_Impact_Level'] * 1.1
 
-# Check for any missing values in the relevant columns before plotting
-if skill_df[['Skill_Level', 'Avg_PreAI', 'Avg_PostAI']].isnull().any().any():
-    st.warning("Some data is missing for Skill_Level or Automation Impact. Missing data has been handled.")
-
-# Plot the Skill Level Impact
-fig7 = px.bar(skill_df, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], 
-              barmode='group', title="Skill Level Impact on PreAI vs PostAI")
+fig7 = px.bar(skill_df, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title="Skill Level Impact on PreAI vs PostAI")
 st.plotly_chart(fig7, use_container_width=True)
+
+# Gender Distribution in IT vs Retail (Assuming Gender_Distribution column exists in skill_df)
+st.markdown("---")
+st.header("👩‍💻 Gender Distribution in IT vs Retail")
+gender_df = skill_df[skill_df['Sector'].isin(['IT', 'Retail'])]
+gender_df = gender_df.groupby(['Sector', 'Gender_Distribution']).size().reset_index(name='Count')
+fig6 = px.bar(gender_df, x='Sector', y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
+st.plotly_chart(fig6, use_container_width=True)
 
 # Export Prediction Option
 st.markdown("---")
