@@ -4,6 +4,8 @@ import numpy as np
 import joblib
 from PIL import Image
 
+model = joblib.load("xgboost_model.pkl")
+
 # Page config
 st.set_page_config(
     page_title="AI & Automation Impact Predictor",
