@@ -14,9 +14,6 @@ df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 # Page config
 st.set_page_config(page_title="AI & Automation Impact Predictor", layout="wide")
 
-# Load model
-model = joblib.load("models/xgboost_automation_model.pkl")
-
 # Load optional Lottie animation
 def load_lottie_file(filepath: str):
     with open(filepath, "r") as f:
