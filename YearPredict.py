@@ -35,11 +35,11 @@ with st.sidebar:
     st.markdown("Explore how AI & automation influence employment trends.")
 
 # ---------- Load Data ----------
+# ---------- Load Data ----------
 try:
-    
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+    df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 except FileNotFoundError:
-    st.error("CSV file not found. Please make sure it's uploaded and path is correct.")
+    st.error("CSV file not found. Please make sure the file name and path are correct.")
     st.stop()
 
 # Flatten '_id' if it's from MongoDB
