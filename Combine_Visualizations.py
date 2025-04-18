@@ -145,12 +145,25 @@ else:
     fig7 = px.bar(df2, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title="Skill Level Impact on PreAI vs PostAI")
     st.plotly_chart(fig7, use_container_width=True)
 
-# Simulate PreAI and PostAI scores based on Automation_Impact_Level
-df2['Avg_PreAI'] = df2['Automation_Impact_Level'] * 0.6  # Simulated example
-df2['Avg_PostAI'] = df2['Automation_Impact_Level'] * 1.1
+# Compare Unemployment vs Skills Gap
+st.markdown("---")
+st.header("📊 Unemployment vs Skills Gap Comparison")
 
-fig7 = px.bar(df2, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title="Skill Level Impact on PreAI vs PostAI")
-st.plotly_chart(fig7, use_container_width=True)
+# Prepare the data for visualization
+comparison_df = merged_df[['_id.Country', '_id.Sector', '_id.Year', 'Avg_PreAI', 'Avg_PostAI', 'Skills_Gap']]
+
+# Group the data by year and calculate average values for Unemployment and Skills Gap
+comparison_df = comparison_df.groupby('_id.Year').agg({
+    'Avg_PreAI': 'mean',
+    'Avg_PostAI': 'mean',
+    'Skills_Gap': 'mean'
+}).reset_index()
+
+# Plot the comparison between Unemployment (PreAI/PostAI) and Skills Gap
+fig8 = px.line(comparison_df, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI', 'Skills_Gap'],
+              labels={'value': 'Impact/Skills Gap Level', 'variable': 'Metric'},
+              title='Unemployment vs Skills Gap (Pre-AI vs Post-AI) Over Time')
+st.plotly_chart(fig8, use_container_width=True)
 
 # Export Prediction Option
 st.markdown("---")
