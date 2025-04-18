@@ -113,17 +113,20 @@ st.header("👩‍💻 Gender Distribution in IT vs Retail")
 if 'Gender_Distribution' not in df2.columns:
     st.error("The 'Gender_Distribution' column is missing from the dataset.")
 else:
+    # Fix the column name (if needed)
+    sector_column = 'sector'  # Example: if the column is named 'sector' instead of 'Sector'
+    
     # Filter data for IT and Retail sectors
-    gender_df = df2[df2['Sector'].isin(['IT', 'Retail'])]
+    gender_df = df2[df2[sector_column].isin(['IT', 'Retail'])]
 
     # Ensure there are no missing values in 'Gender_Distribution' before grouping
     gender_df = gender_df.dropna(subset=['Gender_Distribution'])
 
     # Group by sector and gender distribution
-    gender_df = gender_df.groupby(['Sector', 'Gender_Distribution']).size().reset_index(name='Count')
+    gender_df = gender_df.groupby([sector_column, 'Gender_Distribution']).size().reset_index(name='Count')
 
     # Plot the gender distribution in IT vs Retail
-    fig6 = px.bar(gender_df, x='Sector', y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
+    fig6 = px.bar(gender_df, x=sector_column, y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
     st.plotly_chart(fig6, use_container_width=True)
 
 # Skill Level Impact based on PreAI vs PostAI
