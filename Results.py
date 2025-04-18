@@ -1,8 +1,15 @@
 import pandas as pd
 import streamlit as st
+import joblib  # Assuming you're using joblib to load the model
+
+# Load your pre-trained model (ensure the model is in the correct path)
+model = joblib.load('your_model_file.pkl')  # Adjust the model file path
 
 # Sample data (replace with your actual dataset loading)
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+
+# Check column names to ensure they are correct
+st.write(df.columns)  # This will help you identify column names
 
 # Set default values based on the data
 latest_year = sorted(df['_id.Year'].unique())[-1]  # Get the latest year
@@ -59,5 +66,5 @@ input_df = pd.DataFrame({
 prediction = model.predict(input_df)  # Assuming you have your model loaded
 
 # Show prediction results
-st.write(f"Prediction for the year {year}, country {country}, sector {sector}:")
-st.write(f"Predicted Impact: {prediction}")
+st.write(f"Prediction for the year {year}, country {country}, sector {sector}, education level {education_level}:")
+st.write(f"Predicted Impact: {prediction[0]}")  # Show the first prediction if it's an array
