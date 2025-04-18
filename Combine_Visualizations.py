@@ -163,18 +163,23 @@ comparison_df = comparison_df.groupby('_id.Year').agg({
 st.markdown("---")
 st.header("🕰 Skill Gap Over Time")
 
-# Assuming 'Skill_Gap' and 'Year' columns exist
-if 'Skill_Gap' not in df2.columns or 'Year' not in df2.columns:
-    st.error("The 'Skill_Gap' or 'Year' column is missing from the dataset.")
-else:
-    # Grouping by Year and Skill_Level to calculate average skill gap
-    skill_gap_df = df2.groupby(['Year', 'Skill_Level'])['Skill_Gap'].mean().reset_index()
+# Skills Gap Comparison over Years
+st.markdown("---")
+st.header("🛠️ Skills Gap Over Time")
 
-    # Plotting the skill gap over years for each skill level
-    fig8 = px.line(skill_gap_df, x='Year', y='Skill_Gap', color='Skill_Level',
-                   title='Skill Gap Over Time by Skill Level',
-                   labels={'Skill_Gap': 'Average Skill Gap', 'Year': 'Year'})
-    st.plotly_chart(fig8, use_container_width=True)
+# Filter the data based on selected year range
+skills_gap_data = df2[(df2['_id.Year'] >= year_range[0]) & (df2['_id.Year'] <= year_range[1])]
+
+# Group by Year and calculate the mean Skills Gap
+skills_gap_avg = skills_gap_data.groupby('_id.Year')['Skills_Gap'].mean().reset_index()
+
+# Plot the Skills Gap trend over time
+fig_skills_gap = px.line(skills_gap_avg, x='_id.Year', y='Skills_Gap',
+                         title=f"Average Skills Gap from {year_range[0]} to {year_range[1]}",
+                         labels={'_id.Year': 'Year', 'Skills_Gap': 'Average Skills Gap'},
+                         markers=True)
+st.plotly_chart(fig_skills_gap, use_container_width=True)
+
 
 # Plot the comparison between Unemployment (PreAI/PostAI) and Skills Gap
 fig8 = px.line(comparison_df, x='_id.Year', y=['Avg_PreAI', 'Avg_PostAI', 'Skills_Gap'],
