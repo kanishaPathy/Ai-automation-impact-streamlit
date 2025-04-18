@@ -8,6 +8,12 @@ model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 skill_df = pd.read_csv("reskilling_dataset_cleaned.csv")
 
+# Check if 'Gender_Distribution' column exists
+if 'Gender_Distribution' not in skill_df.columns:
+    st.error("The 'Gender_Distribution' column is missing in the reskilling dataset.")
+else:
+    st.success("Gender_Distribution column found!")
+
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
@@ -66,17 +72,20 @@ st.header("👩‍💻 Gender Distribution and Sector Analysis")
 
 # Gender selection (Male / Female) and sector selection
 gender = st.selectbox("Select Gender", ["Male", "Female"], key="gender")
-sector_gender = st.selectbox("Select Sector", sorted(df['_id.Sector'].unique()), key="sector_gender")
+sector_gender = st.selectbox("Select Sector", sorted(skill_df['Sector'].unique()), key="sector_gender")
 
 # Filter data based on gender and sector
-gender_filtered_df = skill_df[(skill_df['Gender_Distribution'] == gender) & (skill_df['_id.Sector'] == sector_gender)]
+gender_filtered_df = skill_df[(skill_df['Gender_Distribution'] == gender) & (skill_df['Sector'] == sector_gender)]
 
-# Visualize Gender Distribution Impact
-fig_gender = px.bar(gender_filtered_df, x='Skill_Level', y='Automation_Impact_Level', color='Education_Level',
-                    title=f"Impact of Automation by Gender ({gender}) in Sector: {sector_gender}",
-                    labels={'Automation_Impact_Level': 'Automation Impact Level', 'Skill_Level': 'Skill Level'},
-                    height=400)
-st.plotly_chart(fig_gender, use_container_width=True)
+if gender_filtered_df.empty:
+    st.warning(f"No data available for gender: {gender} and sector: {sector_gender}. Please try other selections.")
+else:
+    # Visualize Gender Distribution Impact
+    fig_gender = px.bar(gender_filtered_df, x='Skill_Level', y='Automation_Impact_Level', color='Education_Level',
+                        title=f"Impact of Automation by Gender ({gender}) in Sector: {sector_gender}",
+                        labels={'Automation_Impact_Level': 'Automation Impact Level', 'Skill_Level': 'Skill Level'},
+                        height=400)
+    st.plotly_chart(fig_gender, use_container_width=True)
 
 # ---------- Skill Level Impact Visualization ----------
 st.markdown("---")
