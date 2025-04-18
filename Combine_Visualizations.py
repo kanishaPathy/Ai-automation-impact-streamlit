@@ -94,26 +94,25 @@ fig5 = px.bar(filter_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Y
               title=f'{country_vs} vs {"All Sectors" if sector_vs == "All" else sector_vs} Impact Comparison')
 st.plotly_chart(fig5, use_container_width=True)
 
-# Gender Distribution in IT vs Retail (Assuming Gender_Distribution column exists in skill_df)
-st.markdown("---")
-st.header("👩‍💻 Gender Distribution in IT vs Retail")
-gender_df = skill_df[skill_df['Sector'].isin(['IT', 'Retail'])]
-gender_df = gender_df.groupby(['Sector', 'Gender_Distribution']).size().reset_index(name='Count')
-fig6 = px.bar(gender_df, x='Sector', y='Count', color='Gender_Distribution', title='Gender Distribution in IT vs Retail')
-st.plotly_chart(fig6, use_container_width=True)
-
-# Skill Level Impact based on PreAI vs PostAI
-st.markdown("---")
-st.header("💼 Skill Level Impact")
+# Skill Level Impact Visualization
 # Ensure 'Automation_Impact_Level' is numeric (convert non-numeric to NaN and handle them)
 skill_df['Automation_Impact_Level'] = pd.to_numeric(skill_df['Automation_Impact_Level'], errors='coerce')
 skill_df['Automation_Impact_Level'].fillna(0, inplace=True)
+
+# If 'Skill_Level' contains any missing or unexpected values, we can also handle that
+skill_df['Skill_Level'].fillna('Unknown', inplace=True)
 
 # Simulate PreAI and PostAI scores based on Automation_Impact_Level
 skill_df['Avg_PreAI'] = skill_df['Automation_Impact_Level'] * 0.6  # Simulated example
 skill_df['Avg_PostAI'] = skill_df['Automation_Impact_Level'] * 1.1
 
-fig7 = px.bar(skill_df, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title="Skill Level Impact on PreAI vs PostAI")
+# Check for any missing values in the relevant columns before plotting
+if skill_df[['Skill_Level', 'Avg_PreAI', 'Avg_PostAI']].isnull().any().any():
+    st.warning("Some data is missing for Skill_Level or Automation Impact. Missing data has been handled.")
+
+# Plot the Skill Level Impact
+fig7 = px.bar(skill_df, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], 
+              barmode='group', title="Skill Level Impact on PreAI vs PostAI")
 st.plotly_chart(fig7, use_container_width=True)
 
 # Export Prediction Option
