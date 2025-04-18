@@ -8,7 +8,6 @@ import json
 import requests
 
 model = joblib.load("xgboost_model.pkl")
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 # Optional: Lottie animation (make sure to install streamlit-lottie)
 try:
     from streamlit_lottie import st_lottie
@@ -37,7 +36,8 @@ with st.sidebar:
 
 # ---------- Load Data ----------
 try:
-    data = pd.read_csv("data/automation_data.csv")
+    
+df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 except FileNotFoundError:
     st.error("CSV file not found. Please make sure it's uploaded and path is correct.")
     st.stop()
