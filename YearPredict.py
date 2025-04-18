@@ -1,105 +1,135 @@
 import streamlit as st
-from PIL import Image
 import pandas as pd
 import joblib
-import numpy as np
-from streamlit_lottie import st_lottie
-import json
 import os
+import plotly.express as px
 
-
+# Load your data
 model = joblib.load("xgboost_model.pkl")
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 
-# Page config
-st.set_page_config(page_title="AI & Automation Impact Predictor", layout="wide")
+# Set page config
+st.set_page_config(page_title="AI & Automation Impact", layout="wide")
 
-# Load optional Lottie animation
-def load_lottie_file(filepath: str):
-    with open(filepath, "r") as f:
-        return json.load(f)
-
-lottie_ai = None
-if os.path.exists("ai_animation.json"):
-    lottie_ai = load_lottie_file("ai_animation.json")
-
-# Try loading the image
-image = None
-if os.path.exists("ai_icon.png"):
-    image = Image.open("ai_icon.png")
-
-# Header section
-with st.container():
-    col_img, col_title = st.columns([1, 4])
-    
-    with col_img:
-        if image:
-            st.image(image, width=100)
-        elif lottie_ai:
-            st_lottie(lottie_ai, height=100)
-        else:
-            st.markdown("🤖")
-    
-    with col_title:
-        st.markdown("<h1 style='margin-bottom: 0;'>AI & Automation Impact Predictor</h1>", unsafe_allow_html=True)
-        st.markdown("Understand the projected impact of AI on your sector using key insights")
+# --- HEADER SECTION ---
+st.markdown(
+    """
+    <div style='text-align: center;'>
+        <h1 style='font-size: 48px; color: #1f77b4;'>🌐 AI & Automation Impact Explorer</h1>
+        <p style='font-size: 20px; color: gray;'>Visualize and predict the automation effect by Country, Sector, and Year</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown("---")
 
-# Input form
-with st.container():
-    st.subheader("📥 Input Your Data")
-    
-    with st.form("prediction_form"):
-        col1, col2 = st.columns(2)
+# --- SIDEBAR FILTERS ---
+st.sidebar.header("🔍 Filter Criteria")
 
-        with col1:
-            country = st.selectbox("Country", ["USA", "India", "Ireland", "Germany", "Canada"])
-            sector = st.selectbox("Sector", ["IT", "Healthcare", "Finance", "Retail", "Education"])
-            year = st.slider("Year", min_value=2010, max_value=2030, value=2024)
-            education_level = st.selectbox("Education Level", ["High School", "Bachelor's", "Master's", "PhD"])
+# Dropdowns & sliders
+years = sorted(data['_id.Year'].unique())
+selected_year_range = st.sidebar.slider("Select Year Range", int(min(years)), int(max(years)), (2010, 2022))
 
-        with col2:
-            avg_pre_ai = st.number_input("Average Pre-AI Unemployment Rate", min_value=0.0, max_value=100.0, step=0.1)
-            avg_post_ai = st.number_input("Average Post-AI Unemployment Rate", min_value=0.0, max_value=100.0, step=0.1)
-            avg_automation_impact = st.number_input("Avg. Automation Impact (%)", min_value=0.0, max_value=100.0, step=0.1)
-            avg_ai_role_jobs = st.number_input("Avg. AI Role Jobs Created", min_value=0.0, step=0.1)
-            avg_reskilling_programs = st.number_input("Avg. Reskilling Programs", min_value=0.0, step=0.1)
-            avg_economic_impact = st.number_input("Avg. Economic Impact (%)", min_value=-100.0, max_value=100.0, step=0.1)
-            avg_sector_growth = st.number_input("Avg. Sector Growth (%)", min_value=-100.0, max_value=100.0, step=0.1)
+selected_countries = st.sidebar.multiselect(
+    "Select Countries",
+    sorted(data['_id.Country'].unique()),
+    default=["USA", "IND"]
+)
 
-        submitted = st.form_submit_button("🚀 Predict Impact")
+selected_sector = st.sidebar.selectbox(
+    "Select Sector",
+    sorted(data['_id.Sector'].unique())
+)
 
-# Prediction logic
-if submitted:
-    input_data = {
-        '_id.Country': [country],
-        '_id.Sector': [sector],
-        '_id.Year': [year],
-        '_id.EducationLevel': [education_level],
-        'Avg_PreAI': [avg_pre_ai],
-        'Avg_PostAI': [avg_post_ai],
-        'Avg_Automation_Impact': [avg_automation_impact],
-        'Avg_AI_Role_Jobs': [avg_ai_role_jobs],
-        'Avg_ReskillingPrograms': [avg_reskilling_programs],
-        'Avg_EconomicImpact': [avg_economic_impact],
-        'Avg_SectorGrowth': [avg_sector_growth]
-    }
+selected_edu = st.sidebar.selectbox(
+    "Select Education Level",
+    sorted(data['_id.EducationLevel'].unique())
+)
 
-    df = pd.DataFrame(input_data)
+# --- FILTER DATA ---
+filtered_data = data[
+    (data['_id.Year'] >= selected_year_range[0]) &
+    (data['_id.Year'] <= selected_year_range[1]) &
+    (data['_id.Country'].isin(selected_countries)) &
+    (data['_id.Sector'] == selected_sector) &
+    (data['_id.EducationLevel'] == selected_edu)
+]
 
-    # Encode categorical variables
-    df_encoded = pd.get_dummies(df)
+# --- MAIN VIEW ---
+col1, col2 = st.columns([1, 1])
 
-    # Ensure all columns match the model
-    model_features = model.get_booster().feature_names
-    for feature in model_features:
-        if feature not in df_encoded.columns:
-            df_encoded[feature] = 0  # Add missing features as 0
+with col1:
+    st.subheader("📈 Automation Impact Over Time")
+    fig = px.line(
+        filtered_data,
+        x="_id.Year",
+        y="Avg_Automation_Impact",
+        color="_id.Country",
+        markers=True,
+        labels={"_id.Year": "Year", "Avg_Automation_Impact": "Automation Impact"},
+        title=""
+    )
+    fig.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+    st.plotly_chart(fig, use_container_width=True)
 
-    df_encoded = df_encoded[model_features]  # Reorder
+with col2:
+    st.subheader("💼 AI Role Jobs Trend")
+    fig2 = px.line(
+        filtered_data,
+        x="_id.Year",
+        y="Avg_AI_Role_Jobs",
+        color="_id.Country",
+        markers=True,
+        labels={"_id.Year": "Year", "Avg_AI_Role_Jobs": "AI Jobs Created"},
+        title=""
+    )
+    fig2.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+    st.plotly_chart(fig2, use_container_width=True)
 
-    # Predict
-    prediction = model.predict(df_encoded)[0]
+# --- PREDICTION SECTION ---
+st.markdown("---")
+st.header("🤖 Predict Automation Impact")
 
-    st.success(f"📊 Predicted Automation Impact: **{prediction:.2f}%**")
+input_country = st.selectbox("Country", sorted(data['_id.Country'].unique()))
+input_sector = st.selectbox("Sector", sorted(data['_id.Sector'].unique()))
+input_year = st.slider("Year", min(years), max(years), 2022)
+input_edu = st.selectbox("Education Level", sorted(data['_id.EducationLevel'].unique()))
+
+# Dummy input fields (you can use actual means or sliders)
+avg_pre_ai = st.number_input("Avg_PreAI", value=50.0)
+avg_post_ai = st.number_input("Avg_PostAI", value=65.0)
+avg_ai_jobs = st.number_input("Avg_AI_Role_Jobs", value=2000.0)
+avg_reskill = st.number_input("Avg_ReskillingPrograms", value=30.0)
+avg_eco = st.number_input("Avg_EconomicImpact", value=10.0)
+avg_growth = st.number_input("Avg_SectorGrowth", value=5.0)
+
+# CTA button
+if st.button("Predict Automation Impact 🚀"):
+    model_path = "models/xgboost_automation_model.pkl"
+    if os.path.exists(model_path):
+        model = joblib.load(model_path)
+        input_df = pd.DataFrame({
+            '_id.Country': [input_country],
+            '_id.Sector': [input_sector],
+            '_id.Year': [input_year],
+            '_id.EducationLevel': [input_edu],
+            'Avg_PreAI': [avg_pre_ai],
+            'Avg_PostAI': [avg_post_ai],
+            'Avg_AI_Role_Jobs': [avg_ai_jobs],
+            'Avg_ReskillingPrograms': [avg_reskill],
+            'Avg_EconomicImpact': [avg_eco],
+            'Avg_SectorGrowth': [avg_growth]
+        })
+
+        prediction = model.predict(input_df.drop(columns=['_id.Country', '_id.Sector', '_id.Year', '_id.EducationLevel']))
+        st.success(f"🔮 Predicted Automation Impact: **{prediction[0]:.2f}**")
+    else:
+        st.error("❌ Model file not found. Please make sure the model exists in the 'models/' directory.")
+
+# --- FOOTER ---
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: gray;'>© 2025 AI Employment Impact Dashboard</p>",
+    unsafe_allow_html=True
+)
