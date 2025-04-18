@@ -3,7 +3,8 @@ import streamlit as st
 import joblib  # Assuming you're using joblib to load the model
 
 # Load your pre-trained model (ensure the model is in the correct path)
-model = joblib.load('your_model_file.pkl')  # Adjust the model file path
+model = joblib.load("xgboost_model.pkl")
+ # Adjust the model file path
 
 # Sample data (replace with your actual dataset loading)
 df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
