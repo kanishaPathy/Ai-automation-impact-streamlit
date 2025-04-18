@@ -126,6 +126,24 @@ st.header("💼 Skill Level Impact")
 # Ensure 'Automation_Impact_Level' is numeric (convert non-numeric to NaN and handle them)
 df2['Automation_Impact_Level'] = pd.to_numeric(df2['Automation_Impact_Level'], errors='coerce')
 df2['Automation_Impact_Level'].fillna(0, inplace=True)
+# Ensure the necessary columns exist
+if 'Skill_Level' not in df2.columns or 'Automation_Impact_Level' not in df2.columns:
+    st.error("Required columns ('Skill_Level' or 'Automation_Impact_Level') are missing from the dataset.")
+else:
+    # Ensure 'Automation_Impact_Level' is numeric (convert non-numeric to NaN and handle them)
+    df2['Automation_Impact_Level'] = pd.to_numeric(df2['Automation_Impact_Level'], errors='coerce')
+    df2['Automation_Impact_Level'].fillna(0, inplace=True)
+
+    # Simulate PreAI and PostAI scores based on Automation_Impact_Level
+    df2['Avg_PreAI'] = df2['Automation_Impact_Level'] * 0.6  # Simulated example
+    df2['Avg_PostAI'] = df2['Automation_Impact_Level'] * 1.1
+
+    # Check if the columns are populated correctly before plotting
+    st.write(df2[['Skill_Level', 'Avg_PreAI', 'Avg_PostAI']].head())
+
+    # Skill Level Impact Plot
+    fig7 = px.bar(df2, x='Skill_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title="Skill Level Impact on PreAI vs PostAI")
+    st.plotly_chart(fig7, use_container_width=True)
 
 # Simulate PreAI and PostAI scores based on Automation_Impact_Level
 df2['Avg_PreAI'] = df2['Automation_Impact_Level'] * 0.6  # Simulated example
