@@ -48,27 +48,39 @@ st.plotly_chart(fig2)
 #                y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
 #                title="Automation Impact vs Reskilling Efforts")
 # st.plotly_chart(fig3)
+# Clean column names to ensure no hidden whitespaces
+filtered_df.columns = filtered_df.columns.str.strip()
+
 # Visualization 3: Automation Impact Level and Reskilling Demand
 st.subheader("Automation Impact and Reskilling Demand Over Time")
 
-# Define the relevant columns
+# Define columns we need
 reskilling_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
 
-# Check if all required columns exist in the filtered DataFrame
-missing_cols = [col for col in reskilling_cols if col not in filtered_df.columns]
-if missing_cols:
-    st.warning(f"The following columns are missing and required for this plot: {', '.join(missing_cols)}")
-else:
-    # Drop rows with missing values in those columns
-    valid_df = filtered_df.dropna(subset=reskilling_cols)
+# Ensure the 'Year' column is numeric
+filtered_df["Year"] = pd.to_numeric(filtered_df["Year"], errors="coerce")
 
-    if not valid_df.empty:
-        fig3 = px.line(valid_df, x="Year", 
-                       y=reskilling_cols,
+# Check if required columns are present and numeric
+available_cols = [col for col in reskilling_cols if col in filtered_df.columns]
+missing_cols = [col for col in reskilling_cols if col not in filtered_df.columns]
+
+if missing_cols:
+    st.warning(f"Missing columns: {', '.join(missing_cols)}")
+
+# Filter to only valid numeric data
+valid_df = filtered_df[["Year"] + available_cols].dropna()
+
+# Ensure there’s data to plot
+if not valid_df.empty and len(available_cols) > 0:
+    try:
+        fig3 = px.line(valid_df, x="Year", y=available_cols,
                        title="Automation Impact vs Reskilling Efforts")
         st.plotly_chart(fig3)
-    else:
-        st.warning("No valid data available to plot Automation Impact and Reskilling Demand.")
+    except Exception as e:
+        st.error(f"Failed to plot graph due to: {e}")
+else:
+    st.warning("No valid data available to plot or required columns are missing.")
+
 
 
 # Load prediction model
