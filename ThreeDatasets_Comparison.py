@@ -45,9 +45,20 @@ st.plotly_chart(fig2)
 st.write("Filtered Data:", filtered_df.head())  # Display first few rows
 st.write("Number of rows in filtered data:", filtered_df.shape[0])
 
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data Preview:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
+
+# Check the data types of the columns involved
+st.write("Data Types Before Transformation:")
+st.write(filtered_df[["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]].dtypes)
+
 # Convert Automation_Impact_Level from categorical to numeric
 impact_mapping = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
 filtered_df["Automation_Impact_Level"] = filtered_df["Automation_Impact_Level"].map(impact_mapping)
+
+# Check if any values are NaN after conversion
+st.write("Missing Values in Automation_Impact_Level:", filtered_df["Automation_Impact_Level"].isna().sum())
 
 # Ensure the 'Year' column is numeric
 filtered_df["Year"] = pd.to_numeric(filtered_df["Year"], errors="coerce")
@@ -56,24 +67,29 @@ filtered_df["Year"] = pd.to_numeric(filtered_df["Year"], errors="coerce")
 for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
     filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
 
-# Check if required columns are present and numeric
-available_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
-valid_df = filtered_df[["Year"] + available_cols].dropna()
+# Check if any values are NaN after conversion
+st.write("Missing Values in Reskilling Columns:")
+for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
+    st.write(f"{col}: {filtered_df[col].isna().sum()}")
+
+# Ensure there's data to plot
+valid_df = filtered_df[["Year", "Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]].dropna()
 
 # Check the shape and content of valid_df
-st.write("Filtered and Transformed Data:", valid_df.head())  # Display first few rows of transformed data
+st.write("Filtered and Transformed Data Preview:", valid_df.head())  # Display first few rows of transformed data
 st.write("Number of rows in valid data:", valid_df.shape[0])
 
-# Ensure there’s data to plot
+# Plot the graph only if there is valid data
 if not valid_df.empty:
     try:
-        fig3 = px.line(valid_df, x="Year", y=available_cols,
+        fig3 = px.line(valid_df, x="Year", y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
                        title="Automation Impact vs Reskilling Efforts")
         st.plotly_chart(fig3)
     except Exception as e:
         st.error(f"Failed to plot graph due to: {e}")
 else:
     st.warning("No valid data available to plot.")
+
 
 # Load prediction model
 try:
