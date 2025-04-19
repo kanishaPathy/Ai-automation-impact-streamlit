@@ -42,12 +42,34 @@ fig2 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decli
               barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
 st.plotly_chart(fig2)
 
+# # Visualization 3: Automation Impact Level and Reskilling Demand
+# st.subheader("Automation Impact and Reskilling Demand Over Time")
+# fig3 = px.line(filtered_df, x="Year", 
+#                y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
+#                title="Automation Impact vs Reskilling Efforts")
+# st.plotly_chart(fig3)
 # Visualization 3: Automation Impact Level and Reskilling Demand
 st.subheader("Automation Impact and Reskilling Demand Over Time")
-fig3 = px.line(filtered_df, x="Year", 
-               y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
-               title="Automation Impact vs Reskilling Efforts")
-st.plotly_chart(fig3)
+
+# Define the relevant columns
+reskilling_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
+
+# Check if all required columns exist in the filtered DataFrame
+missing_cols = [col for col in reskilling_cols if col not in filtered_df.columns]
+if missing_cols:
+    st.warning(f"The following columns are missing and required for this plot: {', '.join(missing_cols)}")
+else:
+    # Drop rows with missing values in those columns
+    valid_df = filtered_df.dropna(subset=reskilling_cols)
+
+    if not valid_df.empty:
+        fig3 = px.line(valid_df, x="Year", 
+                       y=reskilling_cols,
+                       title="Automation Impact vs Reskilling Efforts")
+        st.plotly_chart(fig3)
+    else:
+        st.warning("No valid data available to plot Automation Impact and Reskilling Demand.")
+
 
 # Load prediction model
 try:
