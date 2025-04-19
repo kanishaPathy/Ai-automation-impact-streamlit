@@ -49,46 +49,31 @@ st.write("Number of rows in filtered data:", filtered_df.shape[0])
 st.write("Filtered Data Preview:", filtered_df.head())  # Display first few rows
 st.write("Number of rows in filtered data:", filtered_df.shape[0])
 
-# Check the data types of the columns involved
-st.write("Data Types Before Transformation:")
-st.write(filtered_df[["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]].dtypes)
+# Visualization 3: Automation Impact Level and Reskilling Demand
 
-# Convert Automation_Impact_Level from categorical to numeric
+st.subheader("Automation Impact and Reskilling Demand Over Time")
+
+# Convert Automation_Impact_Level from categorical to numeric (LOW: 0, MEDIUM: 1, HIGH: 2)
 impact_mapping = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
 filtered_df["Automation_Impact_Level"] = filtered_df["Automation_Impact_Level"].map(impact_mapping)
 
-# Check if any values are NaN after conversion
-st.write("Missing Values in Automation_Impact_Level:", filtered_df["Automation_Impact_Level"].isna().sum())
+# Ensure other columns are numeric, using coercion to handle any non-numeric values
+filtered_df["Reskilling_Demand"] = pd.to_numeric(filtered_df["Reskilling_Demand"], errors="coerce")
+filtered_df["Avg_ReskillingPrograms"] = pd.to_numeric(filtered_df["Avg_ReskillingPrograms"], errors="coerce")
 
-# Ensure the 'Year' column is numeric
-filtered_df["Year"] = pd.to_numeric(filtered_df["Year"], errors="coerce")
+# Drop rows with any NaN values in relevant columns
+valid_df = filtered_df.dropna(subset=["Year", "Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"])
 
-# Ensure the reskilling columns are numeric
-for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
-    filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
-
-# Check if any values are NaN after conversion
-st.write("Missing Values in Reskilling Columns:")
-for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
-    st.write(f"{col}: {filtered_df[col].isna().sum()}")
-
-# Ensure there's data to plot
-valid_df = filtered_df[["Year", "Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]].dropna()
-
-# Check the shape and content of valid_df
-st.write("Filtered and Transformed Data Preview:", valid_df.head())  # Display first few rows of transformed data
-st.write("Number of rows in valid data:", valid_df.shape[0])
-
-# Plot the graph only if there is valid data
+# Ensure there is valid data to plot
 if not valid_df.empty:
-    try:
-        fig3 = px.line(valid_df, x="Year", y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
-                       title="Automation Impact vs Reskilling Efforts")
-        st.plotly_chart(fig3)
-    except Exception as e:
-        st.error(f"Failed to plot graph due to: {e}")
+    # Create the line plot
+    fig3 = px.line(valid_df, x="Year", 
+                   y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
+                   title="Automation Impact vs Reskilling Efforts")
+    st.plotly_chart(fig3)
 else:
     st.warning("No valid data available to plot.")
+
 
 
 # Load prediction model
