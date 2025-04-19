@@ -51,27 +51,23 @@ st.plotly_chart(fig2)
 # Clean column names to ensure no hidden whitespaces
 filtered_df.columns = filtered_df.columns.str.strip()
 
-# Visualization 3: Automation Impact Level and Reskilling Demand
-st.subheader("Automation Impact and Reskilling Demand Over Time")
-
-# Define columns we need
-reskilling_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
+# Convert Automation_Impact_Level from categorical to numeric
+impact_mapping = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+filtered_df["Automation_Impact_Level"] = filtered_df["Automation_Impact_Level"].map(impact_mapping)
 
 # Ensure the 'Year' column is numeric
 filtered_df["Year"] = pd.to_numeric(filtered_df["Year"], errors="coerce")
 
+# Ensure the reskilling columns are numeric
+for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
+    filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
+
 # Check if required columns are present and numeric
-available_cols = [col for col in reskilling_cols if col in filtered_df.columns]
-missing_cols = [col for col in reskilling_cols if col not in filtered_df.columns]
-
-if missing_cols:
-    st.warning(f"Missing columns: {', '.join(missing_cols)}")
-
-# Filter to only valid numeric data
+available_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
 valid_df = filtered_df[["Year"] + available_cols].dropna()
 
 # Ensure there’s data to plot
-if not valid_df.empty and len(available_cols) > 0:
+if not valid_df.empty:
     try:
         fig3 = px.line(valid_df, x="Year", y=available_cols,
                        title="Automation Impact vs Reskilling Efforts")
@@ -79,8 +75,7 @@ if not valid_df.empty and len(available_cols) > 0:
     except Exception as e:
         st.error(f"Failed to plot graph due to: {e}")
 else:
-    st.warning("No valid data available to plot or required columns are missing.")
-
+    st.warning("No valid data available to plot.")
 
 
 # Load prediction model
