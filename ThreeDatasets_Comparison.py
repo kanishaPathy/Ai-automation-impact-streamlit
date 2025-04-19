@@ -41,15 +41,9 @@ st.subheader("AI Adoption vs Sector Growth")
 fig2 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
               barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
 st.plotly_chart(fig2)
-
-# # Visualization 3: Automation Impact Level and Reskilling Demand
-# st.subheader("Automation Impact and Reskilling Demand Over Time")
-# fig3 = px.line(filtered_df, x="Year", 
-#                y=["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"],
-#                title="Automation Impact vs Reskilling Efforts")
-# st.plotly_chart(fig3)
-# Clean column names to ensure no hidden whitespaces
-filtered_df.columns = filtered_df.columns.str.strip()
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
 
 # Convert Automation_Impact_Level from categorical to numeric
 impact_mapping = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
@@ -66,6 +60,10 @@ for col in ["Reskilling_Demand", "Avg_ReskillingPrograms"]:
 available_cols = ["Automation_Impact_Level", "Reskilling_Demand", "Avg_ReskillingPrograms"]
 valid_df = filtered_df[["Year"] + available_cols].dropna()
 
+# Check the shape and content of valid_df
+st.write("Filtered and Transformed Data:", valid_df.head())  # Display first few rows of transformed data
+st.write("Number of rows in valid data:", valid_df.shape[0])
+
 # Ensure there’s data to plot
 if not valid_df.empty:
     try:
@@ -76,7 +74,6 @@ if not valid_df.empty:
         st.error(f"Failed to plot graph due to: {e}")
 else:
     st.warning("No valid data available to plot.")
-
 
 # Load prediction model
 try:
