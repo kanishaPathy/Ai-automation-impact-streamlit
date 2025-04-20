@@ -36,6 +36,14 @@ final_df = pd.merge(merged1, df3, on=["Country", "Sector", "Year", "EducationLev
 # Fill missing values
 final_df.fillna(0, inplace=True)
 
+# 🧮 Convert relevant columns to numeric types
+final_df["Automation_Impact_Level"] = pd.to_numeric(final_df["Automation_Impact_Level"], errors='coerce')
+final_df["AI_Adoption_Rate"] = pd.to_numeric(final_df["AI_Adoption_Rate"], errors='coerce')
+
+# Handle NaN values after conversion
+final_df["Automation_Impact_Level"].fillna(0, inplace=True)
+final_df["AI_Adoption_Rate"].fillna(0, inplace=True)
+
 # 🎯 Prediction model (optional)
 model_path = "xgboost_model.pkl"
 if model_path:
