@@ -5,8 +5,8 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
-# Load the data
-@st.cache
+# Load the data (using st.cache_data)
+@st.cache_data
 def load_data():
     df1 = pd.read_csv("Unemployment_cleaned_df1.csv")
     df2 = pd.read_csv("reskilling_dataset_cleaned_df2.csv")
@@ -22,21 +22,24 @@ df1 = df1.rename(columns={"_id.Country": "Country", "_id.Sector": "Sector", "_id
 merged = df1.merge(df2, on=["Country", "Sector", "Year", "EducationLevel"], how="left")
 merged = merged.merge(df3, on=["Country", "Sector", "Year"], how="left")
 
-# Check if there are any missing values in critical columns
+# Check the merged data
+st.write(merged.head())
+
+# Check for missing values in critical columns
 missing_values = merged[['Avg_Automation_Impact', 'Avg_PreAI', 'Avg_PostAI', 'Avg_AI_Role_Jobs', 'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Avg_SectorGrowth']].isnull().sum()
 st.write(f"Missing values in important columns:\n{missing_values}")
 
 # Drop rows with missing target value (Avg_Automation_Impact)
 merged = merged.dropna(subset=["Avg_Automation_Impact"])
 
-# Ensure the target and features are aligned
+# Feature matrix and target vector
 X = merged[['Year', 'Sector', 'EducationLevel', 'Avg_PreAI', 'Avg_PostAI', 'Avg_AI_Role_Jobs', 'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Avg_SectorGrowth']]
 y = merged['Avg_Automation_Impact']
 
-# Handle categorical features by one-hot encoding
+# One-hot encode categorical variables
 X = pd.get_dummies(X, drop_first=True)
 
-# Ensure that X and y have the same length after dropping NaN values
+# Ensure the target and features are aligned
 st.write(f"Shape of features (X): {X.shape}")
 st.write(f"Shape of target (y): {y.shape}")
 
@@ -55,7 +58,8 @@ mse = mean_squared_error(y_test, y_pred)
 st.write(f"Mean Squared Error: {mse}")
 
 # Add predictions to the merged dataset
-merged['Predicted_Impact'] = model.predict(pd.get_dummies(merged[['Year', 'Sector', 'EducationLevel', 'Avg_PreAI', 'Avg_PostAI', 'Avg_AI_Role_Jobs', 'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Avg_SectorGrowth']], drop_first=True))
+pred_features = pd.get_dummies(merged[['Year', 'Sector', 'EducationLevel', 'Avg_PreAI', 'Avg_PostAI', 'Avg_AI_Role_Jobs', 'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Avg_SectorGrowth']], drop_first=True)
+merged['Predicted_Impact'] = model.predict(pred_features)
 
 # Visualization section
 st.title("AI and Automation Impact Visualization")
