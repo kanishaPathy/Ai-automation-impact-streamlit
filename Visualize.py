@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import joblib
-from sklearn.preprocessing import LabelEncoder
 
 st.set_page_config(page_title="AI Automation: Full Dataset Comparison", layout="wide")
 
@@ -42,20 +41,28 @@ model_path = "xgboost_model.pkl"
 if model_path:
     try:
         model = joblib.load(model_path)
-        # Add default columns if missing
+        # Add missing columns to final_df with default values (0)
+        missing_columns = [
+            'Reskilling_Demand', 'Upskilling_Programs', 'Sector_Impact_Score',
+            'Automation_Impact_Level', 'AI_Adoption_Rate', 'Skills_Gap', 'Avg_Automation_Impact'
+        ]
+        for col in missing_columns:
+            if col not in final_df.columns:
+                final_df[col] = 0
+
+        # Feature columns used by the model during training
         feature_cols = [
             'Avg_PreAI', 'Avg_PostAI', 'Avg_Automation_Impact', 'Avg_AI_Role_Jobs',
             'Avg_ReskillingPrograms', 'Skills_Gap', 'Reskilling_Demand', 'Upskilling_Programs',
             'Automation_Impact_Level', 'AI_Adoption_Rate', 'Sector_Impact_Score'
         ]
+
+        # Ensure all required columns are present
         for col in feature_cols:
             if col not in final_df.columns:
-                final_df[col] = 0
-        # Convert categorical columns to numeric
-        le = LabelEncoder()
-        final_df['Automation_Impact_Level'] = le.fit_transform(final_df['Automation_Impact_Level'].astype(str))
-        final_df['AI_Adoption_Rate'] = le.fit_transform(final_df['AI_Adoption_Rate'].astype(str))
-        # Predict
+                final_df[col] = 0  # Default value (0 or other meaningful value)
+
+        # Model prediction
         final_df["Predicted_Impact"] = model.predict(final_df[feature_cols])
     except Exception as e:
         st.warning(f"Model prediction skipped: {e}")
