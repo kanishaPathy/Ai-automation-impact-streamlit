@@ -8,9 +8,9 @@ from sklearn.metrics import mean_squared_error
 # Load the data
 @st.cache
 def load_data():
-   df1 = pd.read_csv("Unemployment_cleaned_df1.csv")
-   df2 = pd.read_csv("reskilling_dataset_cleaned_df2.csv")
-   df3 = pd.read_csv("Sector_cleaned_df3.csv")
+    df1 = pd.read_csv("Unemployment_cleaned_df1.csv")
+    df2 = pd.read_csv("reskilling_dataset_cleaned_df2.csv")
+    df3 = pd.read_csv("Sector_cleaned_df3.csv")
     return df1, df2, df3
 
 df1, df2, df3 = load_data()
