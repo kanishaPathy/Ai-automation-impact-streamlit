@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import xgboost as xgb
 import joblib
 
 st.set_page_config(page_title="AI Automation: Full Dataset Comparison", layout="wide")
@@ -44,11 +45,17 @@ final_df["AI_Adoption_Rate"] = pd.to_numeric(final_df["AI_Adoption_Rate"], error
 final_df["Automation_Impact_Level"].fillna(0, inplace=True)
 final_df["AI_Adoption_Rate"].fillna(0, inplace=True)
 
+# Handle categorical data
+categorical_columns = ['Country', 'Sector', 'EducationLevel']
+for col in categorical_columns:
+    final_df[col] = final_df[col].astype('category')
+
 # 🎯 Prediction model (optional)
 model_path = "xgboost_model.pkl"
 if model_path:
     try:
         model = joblib.load(model_path)
+
         # Add missing columns to final_df with default values (0)
         missing_columns = [
             'Reskilling_Demand', 'Upskilling_Programs', 'Sector_Impact_Score',
