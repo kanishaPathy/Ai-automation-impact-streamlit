@@ -3,9 +3,31 @@ import joblib
 import streamlit as st
 import plotly.express as px
 
-# Load model and data
-model = joblib.load("xgboost_model.pkl")
-df = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+# Load your merged data
+@st.cache_data
+def load_data():
+    df1 = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
+    df2 = pd.read_csv("reskilling_dataset_cleaned.csv")
+    df3 = pd.read_csv("Sectors_Growth_AI_Adoption_dirty_100k.csv")
+    merged_1_2 = pd.merge(df1, df2, left_on=['_id.Country', '_id.Sector', '_id.Year', '_id.EducationLevel'],
+                          right_on=['Country', 'Sector', 'Year', 'Education_Level'], how='inner')
+    merged_all = pd.merge(merged_1_2, df3, on=['Country', 'Sector', 'Year'], how='inner')
+    return merged_all
+
+df = load_data()
+
+# Sidebar filters
+st.sidebar.header("Filter Options")
+selected_country = st.sidebar.selectbox("Select Country", df["Country"].unique())
+selected_sector = st.sidebar.selectbox("Select Sector", df["Sector"].unique())
+selected_year_range = st.sidebar.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2024))
+
+# Filtered Data
+filtered_df = df[(df["Country"] == selected_country) & 
+                 (df["Sector"] == selected_sector) & 
+                 (df["Year"] >= selected_year_range[0]) & 
+                 (df["Year"] <= selected_year_range[1])]
+
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
