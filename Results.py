@@ -93,6 +93,29 @@ fig5 = px.bar(filter_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Y
               title=f'{country_vs} vs {"All Sectors" if sector_vs == "All" else sector_vs} Impact Comparison')
 st.plotly_chart(fig5, use_container_width=True)
 
+
+# Visualization 5: Unemployment vs Skills Gap
+st.subheader("Unemployment Impact vs Skills Gap")
+fig1 = px.line(filtered_df, x="Year", 
+               y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+               labels={"value": "Impact/Gap"}, 
+               title="AI's Impact on Unemployment and Skills Gap")
+st.plotly_chart(fig1)
+
+# Visualization 6: AI Adoption vs Sector Growth
+st.subheader("AI Adoption vs Sector Growth")
+fig2 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+              barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
+st.plotly_chart(fig2)
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
+
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data Preview:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
+
+
 # Export Prediction Option
 st.markdown("---")
 if st.button("💾 Save Prediction to CSV"):
