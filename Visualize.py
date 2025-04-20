@@ -6,10 +6,25 @@ import plotly.express as px
 st.set_page_config(layout="wide")
 st.title("📊 AI & Automation Impact Predictor")
 
-# Load datasets
 df1 = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 df2 = pd.read_csv("reskilling_dataset_cleaned.csv")
 df3 = pd.read_csv("Sectors_Growth_AI_Adoption_dirty_100k.csv")
+
+# Check column names
+st.write("📄 df1 columns:", df1.columns.tolist())
+st.write("📄 df2 columns:", df2.columns.tolist())
+st.write("📄 df3 columns:", df3.columns.tolist())
+
+# Rename if necessary
+if "Country_x" in df1.columns or "_id.Country" in df1.columns:
+    df1.rename(columns={"_id.Country": "Country"}, inplace=True)
+if "_id.Sector" in df1.columns:
+    df1.rename(columns={"_id.Sector": "Sector"}, inplace=True)
+if "_id.EducationLevel" in df1.columns:
+    df1.rename(columns={"_id.EducationLevel": "EducationLevel"}, inplace=True)
+if "_id.Year" in df1.columns:
+    df1.rename(columns={"_id.Year": "Year"}, inplace=True)
+
 
 # Merge the datasets
 merged = df1.merge(df2, on=["Country", "Sector", "Year", "EducationLevel"], how="left")
