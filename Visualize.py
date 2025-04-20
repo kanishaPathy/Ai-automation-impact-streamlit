@@ -1,94 +1,99 @@
 import streamlit as st
 import pandas as pd
-import xgboost as xgb
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+import joblib
+from xgboost import XGBRegressor
 
-# Title
-st.set_page_config(page_title="AI Automation Impact", layout="wide")
-st.title("🌐 AI & Automation Impact Visualization Dashboard")
+st.set_page_config(page_title="AI & Automation Impact Dashboard", layout="wide")
 
-# Load datasets
+# 🔄 Load datasets
 df1 = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 df2 = pd.read_csv("reskilling_dataset_cleaned.csv")
 df3 = pd.read_csv("Sectors_Growth_AI_Adoption_dirty_100k.csv")
 
-# Rename columns in df1 for merging
-df1.rename(columns={
-    '_id.Country': 'Country',
-    '_id.Sector': 'Sector',
-    '_id.Year': 'Year',
-    '_id.EducationLevel': 'EducationLevel'
-}, inplace=True)
+# 🧹 Preprocess
+for df in [df1, df2, df3]:
+    for col in ['Country', 'Sector', 'EducationLevel']:
+        if col in df.columns:
+            df[col] = df[col].astype(str)
 
-# Ensure required columns exist in df2 and df3
-required_columns = ['Country', 'Sector', 'Year', 'EducationLevel']
-for col in required_columns:
-    if col not in df2.columns:
-        df2[col] = None
-    if col not in df3.columns:
-        df3[col] = None
+# 🧩 Merge datasets on common keys
+df_merge1 = pd.merge(df1, df2, on=["Country", "Sector", "Year", "EducationLevel"], how="outer")
+df_final = pd.merge(df_merge1, df3, on=["Country", "Sector", "Year", "EducationLevel"], how="outer")
 
-# Merge all three datasets
-df_merged = pd.merge(df1, df2, on=required_columns, how="outer")
-df_final = pd.merge(df_merged, df3, on=required_columns, how="outer")
+# 🔍 Clean missing values
+df_final.fillna(0, inplace=True)
 
-# Sidebar filters
-st.sidebar.header("🔍 Filter Options")
-years = sorted(df_final["Year"].dropna().unique())
-selected_year = st.sidebar.selectbox("Select Year", years)
+# 🎯 Load Model
+model = joblib.load("xgboost_model.pkl")
 
-sectors = df_final["Sector"].dropna().unique()
-selected_sector = st.sidebar.selectbox("Select Sector", sectors)
+# 🎯 Prediction
+feature_columns = ['Year', 'Avg_Unemployment_PreAI', 'Avg_Unemployment_PostAI',
+                   'AI_Role_Jobs', 'Automation_Impact', 'ReskillingPrograms',
+                   'Skills_Gap', 'Upskilling_Programs', 'Automation_Impact_Level',
+                   'AI_Adoption_Rate', 'Sector_Growth_Index']
 
-countries = df_final["Country"].dropna().unique()
-selected_country = st.sidebar.selectbox("Select Country", countries)
+X = df_final[feature_columns]
+df_final['Predicted_Impact'] = model.predict(X)
 
-edu_levels = df_final["EducationLevel"].dropna().unique()
-selected_edu = st.sidebar.selectbox("Select Education Level", edu_levels)
+# 🎨 Title
+st.title("🤖 AI & Automation Impact Comparison Dashboard")
 
-# Filter based on selections
+# 🎛 Filters
+with st.sidebar:
+    selected_countries = st.multiselect("Select Country", options=df_final['Country'].unique(), default=df_final['Country'].unique())
+    selected_sectors = st.multiselect("Select Sector", options=df_final['Sector'].unique(), default=df_final['Sector'].unique())
+    selected_edu = st.multiselect("Select Education Level", options=df_final['EducationLevel'].unique(), default=df_final['EducationLevel'].unique())
+    selected_years = st.slider("Select Year Range", int(df_final['Year'].min()), int(df_final['Year'].max()), (2010, 2024))
+
+# 🧽 Apply filters
 filtered_df = df_final[
-    (df_final["Year"] == selected_year) &
-    (df_final["Sector"] == selected_sector) &
-    (df_final["Country"] == selected_country) &
-    (df_final["EducationLevel"] == selected_edu)
+    (df_final['Country'].isin(selected_countries)) &
+    (df_final['Sector'].isin(selected_sectors)) &
+    (df_final['EducationLevel'].isin(selected_edu)) &
+    (df_final['Year'].between(selected_years[0], selected_years[1]))
 ]
 
-st.subheader("📊 Filtered Data")
-st.dataframe(filtered_df)
+# 📊 Visualization Blocks
 
-# Prediction Section (XGBoost)
-if 'Automation_Impact' in df_final.columns:
-    st.subheader("📈 Predicting Automation Impact")
+st.subheader("🌍 Country-wise Actual vs Predicted Impact")
+fig_country = px.bar(
+    filtered_df.groupby('Country')[['Automation_Impact', 'Predicted_Impact']].mean().reset_index(),
+    x='Country', y=['Automation_Impact', 'Predicted_Impact'],
+    barmode='group',
+    title='Actual vs Predicted Impact by Country'
+)
+st.plotly_chart(fig_country, use_container_width=True)
 
-    features = ['PreAI_Unemployment', 'PostAI_Unemployment', 'AI_Role_Jobs', 'Skills_Gap', 'Upskilling_Programs']
-    available_features = [f for f in features if f in df_final.columns]
-    df_model = df_final.dropna(subset=available_features + ['Automation_Impact'])
+st.subheader("🏭 Sector-wise Actual vs Predicted Impact")
+fig_sector = px.bar(
+    filtered_df.groupby('Sector')[['Automation_Impact', 'Predicted_Impact']].mean().reset_index(),
+    x='Sector', y=['Automation_Impact', 'Predicted_Impact'],
+    barmode='group',
+    title='Impact by Sector'
+)
+st.plotly_chart(fig_sector, use_container_width=True)
 
-    X = df_model[available_features]
-    y = df_model['Automation_Impact']
+st.subheader("🎓 Education Level-wise Impact")
+fig_edu = px.bar(
+    filtered_df.groupby('EducationLevel')[['Automation_Impact', 'Predicted_Impact']].mean().reset_index(),
+    x='EducationLevel', y=['Automation_Impact', 'Predicted_Impact'],
+    barmode='group',
+    title='Impact by Education Level'
+)
+st.plotly_chart(fig_edu, use_container_width=True)
 
-    model = xgb.XGBRegressor()
-    model.fit(X, y)
+st.subheader("📅 Year-wise Trend")
+fig_year = px.line(
+    filtered_df.groupby('Year')[['Automation_Impact', 'Predicted_Impact']].mean().reset_index(),
+    x='Year', y=['Automation_Impact', 'Predicted_Impact'],
+    title='Automation Impact Over Time'
+)
+st.plotly_chart(fig_year, use_container_width=True)
 
-    df_final['Predicted_Impact'] = model.predict(df_final[available_features].fillna(0))
+# 📋 Dataset Viewer
+st.subheader("🧾 Final Merged Dataset (Filtered)")
+st.dataframe(filtered_df.head(100))
 
-    st.write("✅ Prediction complete. Here's a preview:")
-    st.dataframe(df_final[['Country', 'Sector', 'Year', 'EducationLevel', 'Predicted_Impact']].dropna())
-
-    # Visualization
-    st.subheader("📉 Actual vs Predicted Automation Impact")
-    fig, ax = plt.subplots()
-    sns.scatterplot(x=y, y=model.predict(X), ax=ax)
-    ax.set_xlabel("Actual")
-    ax.set_ylabel("Predicted")
-    ax.set_title("Actual vs Predicted Automation Impact")
-    st.pyplot(fig)
-
-    # Download results
-    csv = df_final.to_csv(index=False)
-    st.download_button("⬇️ Download Full Data with Predictions", csv, file_name="merged_automation_predictions.csv", mime="text/csv")
-
-else:
-    st.warning("⚠️ 'Automation_Impact' column not found. Prediction not available.")
+# 📁 Download Option
+st.download_button("Download Filtered Dataset", filtered_df.to_csv(index=False), "filtered_impact_data.csv")
