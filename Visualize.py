@@ -1,82 +1,74 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import plotly.express as px
 
-st.set_page_config(layout="wide")
-st.title("📊 AI & Automation Impact Predictor")
+st.set_page_config(page_title="AI & Automation Impact", layout="wide")
 
+# 📌 Load Datasets
 df1 = pd.read_csv("Unemployment_jobcreation_db.Unemployment_data.csv")
 df2 = pd.read_csv("reskilling_dataset_cleaned.csv")
 df3 = pd.read_csv("Sectors_Growth_AI_Adoption_dirty_100k.csv")
 
-# Check column names
-st.write("📄 df1 columns:", df1.columns.tolist())
-st.write("📄 df2 columns:", df2.columns.tolist())
-st.write("📄 df3 columns:", df3.columns.tolist())
+# ✅ Rename columns in df1 for merge compatibility
+df1.rename(columns={
+    "_id.Country": "Country",
+    "_id.Sector": "Sector",
+    "_id.Year": "Year",
+    "_id.EducationLevel": "EducationLevel"
+}, inplace=True)
 
-# Rename if necessary
-if "Country_x" in df1.columns or "_id.Country" in df1.columns:
-    df1.rename(columns={"_id.Country": "Country"}, inplace=True)
-if "_id.Sector" in df1.columns:
-    df1.rename(columns={"_id.Sector": "Sector"}, inplace=True)
-if "_id.EducationLevel" in df1.columns:
-    df1.rename(columns={"_id.EducationLevel": "EducationLevel"}, inplace=True)
-if "_id.Year" in df1.columns:
-    df1.rename(columns={"_id.Year": "Year"}, inplace=True)
+# ✅ Rename df2 column for consistency
+df2.rename(columns={"Education_Level": "EducationLevel"}, inplace=True)
 
+# ✅ Drop unused columns (optional but cleaner)
+df2 = df2.drop(columns=["ID", "Gender_Distribution", "Date", "Last_Updated"])
+df3 = df3.drop(columns=["ID", "tech investment", "Sector_Growth_Decline", "Date", "Last_Updated"])
 
-# Merge the datasets
-merged = df1.merge(df2, on=["Country", "Sector", "Year", "EducationLevel"], how="left")
-merged = merged.merge(df3, on=["Country", "Sector", "Year"], how="left")
+# ✅ Merge all datasets
+merged_1_2 = df1.merge(df2, on=["Country", "Sector", "Year", "EducationLevel"], how="left")
+final_df = merged_1_2.merge(df3, on=["Country", "Sector", "Year"], how="left")
 
-# Fill missing values
-merged.fillna(0, inplace=True)
+# 🌐 Streamlit App Interface
+st.title("📈 AI & Automation Impact: Dataset Comparison")
 
-# Load XGBoost model
-model = joblib.load("xgboost_model.pkl")
+# Filters
+countries = st.multiselect("🌍 Select Countries", final_df["Country"].dropna().unique(), default=["USA", "India"])
+sectors = st.multiselect("🏭 Select Sectors", final_df["Sector"].dropna().unique(), default=["IT", "Healthcare"])
+years = st.slider("📆 Select Year Range", int(final_df["Year"].min()), int(final_df["Year"].max()), (2015, 2024))
 
-# One-hot encoding
-encoded = pd.get_dummies(merged, columns=["Country", "Sector", "EducationLevel"], prefix=["_id.Country", "_id.Sector", "_id.EducationLevel"])
+# Apply filters
+filtered = final_df[
+    (final_df["Country"].isin(countries)) &
+    (final_df["Sector"].isin(sectors)) &
+    (final_df["Year"] >= years[0]) &
+    (final_df["Year"] <= years[1])
+]
 
-# Ensure same columns as training
-model_features = model.feature_names_in_
-for col in model_features:
-    if col not in encoded.columns:
-        encoded[col] = 0
+# 💡 Display Data Preview
+st.subheader("🔍 Filtered Dataset Preview")
+st.dataframe(filtered.head())
 
-# Align column order
-encoded = encoded[model_features]
+# 📊 Visualization 1: Grouped Bar Chart
+if not filtered.empty:
+    st.subheader("📊 Avg Automation vs Predicted Impact")
+    fig = px.bar(
+        filtered,
+        x="Country",
+        y=["Avg_Automation_Impact", "Automation_Impact_Level", "Sector_Impact_Score"],
+        barmode="group",
+        color_discrete_sequence=px.colors.qualitative.Pastel
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-# Fix non-numeric issue
-merged["Automation_Impact_Level"] = pd.to_numeric(merged["Automation_Impact_Level"], errors="coerce")
-merged["AI_Adoption_Rate"] = pd.to_numeric(merged["AI_Adoption_Rate"], errors="coerce")
-
-# Predict and add to merged DataFrame
-merged["Predicted_Impact"] = model.predict(encoded)
-
-# Sidebar selections
-with st.sidebar:
-    st.header("🔍 Filter")
-    country = st.selectbox("Select Country", merged["Country"].unique())
-    sector = st.selectbox("Select Sector", merged["Sector"].unique())
-    year = st.slider("Select Year", int(merged["Year"].min()), int(merged["Year"].max()))
-
-# Filter data
-filtered = merged[(merged["Country"] == country) & 
-                  (merged["Sector"] == sector) & 
-                  (merged["Year"] == year)]
-
-# Plot
-st.subheader(f"Impact in {country} - {sector} ({year})")
-fig = px.bar(filtered,
-             x="EducationLevel",
-             y=["Avg_Automation_Impact", "Automation_Impact_Level", "Predicted_Impact"],
-             barmode="group",
-             title="AI & Automation Impact by Education Level")
-st.plotly_chart(fig, use_container_width=True)
-
-# Table view
-st.subheader("📋 Data Preview")
-st.dataframe(filtered[["Country", "Sector", "Year", "EducationLevel", 
-                      "Avg_Automation_Impact", "Automation_Impact_Level", "Predicted_Impact"]])
+# 📈 Visualization 2: Line Chart for Growth Trends
+    st.subheader("📈 AI Adoption & Growth Rate Over Time")
+    fig2 = px.line(
+        filtered,
+        x="Year",
+        y=["AI_Adoption_Rate", "growth rate"],
+        color="Country",
+        markers=True
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+else:
+    st.warning("No data found for selected filters. Try changing the selections.")
