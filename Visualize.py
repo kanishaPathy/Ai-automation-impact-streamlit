@@ -4,9 +4,9 @@ import plotly.express as px
 import xgboost as xgb
 
 # Load datasets
-df1 = pd.read_csv("/mnt/data/Unemployment_jobcreation_db.Unemployment_data.csv")
-df2 = pd.read_csv("/mnt/data/reskilling_dataset_cleaned.csv")
-df3 = pd.read_csv("/mnt/data/Sectors_Growth_AI_Adoption_dirty_100k.csv")
+df1 = pd.read_csv("Unemployment_data.csv")
+df2 = pd.read_csv("reskilling_dataset_cleaned.csv")
+df3 = pd.read_csv("Sectors_Growth_AI_Adoption_dirty_100k.csv")
 
 # Merge datasets on common columns (assuming they share 'Country', 'Sector', 'Year')
 df = pd.merge(df1, df2, on=["Country", "Sector", "Year", "EducationLevel"], how="outer")
