@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import joblib
+from sklearn.preprocessing import LabelEncoder
 
 st.set_page_config(page_title="AI Automation: Full Dataset Comparison", layout="wide")
 
@@ -50,6 +51,11 @@ if model_path:
         for col in feature_cols:
             if col not in final_df.columns:
                 final_df[col] = 0
+        # Convert categorical columns to numeric
+        le = LabelEncoder()
+        final_df['Automation_Impact_Level'] = le.fit_transform(final_df['Automation_Impact_Level'].astype(str))
+        final_df['AI_Adoption_Rate'] = le.fit_transform(final_df['AI_Adoption_Rate'].astype(str))
+        # Predict
         final_df["Predicted_Impact"] = model.predict(final_df[feature_cols])
     except Exception as e:
         st.warning(f"Model prediction skipped: {e}")
