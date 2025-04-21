@@ -1,126 +1,86 @@
-from sklearn.preprocessing import LabelEncoder
-import pandas as pd
-import joblib
 import streamlit as st
-import plotly.express as px
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import joblib
+import xgboost as xgb
 
-# Set Streamlit page config FIRST
-st.set_page_config(page_title="AI Automation Impact", layout="wide")
+# Load model and encoders
+model = joblib.load("models/xgboost_model.pkl")
+label_encoders = joblib.load("models/label_encoders.pkl")
 
-# Load the trained model and label encoders
-model = joblib.load("xgboost_model_ai_impact.pkl")
-label_encoders = joblib.load("label_encoders.pkl")
-
-# Load the dataset
+# Load datasets
 df = pd.read_csv("merged_data_updated.csv")
+# df_encoded = pd.read_csv('datasets/merged_combined_data_encoded.csv')
 
-# Clean up column names by removing '_x' and '_y'
-df.columns = df.columns.str.replace('_x', '').str.replace('_y', '')
+# App title
+st.title("AI & Automation Impact Prediction Dashboard")
 
-# Verify column names
-st.write(df.columns)
+# Sidebar filters
+country = st.sidebar.selectbox("Select Country", sorted(df["Country"].unique()))
+sector = st.sidebar.selectbox("Select Sector", sorted(df["Sector"].unique()))
+education = st.sidebar.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
+year_range = st.sidebar.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2015, 2024))
 
-# ---------- User Inputs Section ----------
-st.title("🤖 AI Automation Impact Prediction & Insights")
+# Filtered data for visualizations
+filtered_df = df[
+    (df["Country"] == country) &
+    (df["Sector"] == sector) &
+    (df["EducationLevel"] == education) &
+    (df["Year"].between(year_range[0], year_range[1]))
+]
 
-st.markdown("### 🎯 Select Parameters for Prediction")
-col1, col2, col3, col4 = st.columns(4)
-year_range = col1.slider("Select Year Range", int(df['Year'].min()), int(df['Year'].max()), (2010, 2022))
-country = col2.selectbox("Country", sorted(df['Country'].unique()))
-sector = col3.selectbox("Sector", sorted(df['Sector'].unique()))
-education = col4.selectbox("Education Level", sorted(df['EducationLevel'].unique()))
+# Line chart: PreAI vs PostAI impact
+st.subheader("Unemployment Impact Before vs After AI")
+fig1, ax1 = plt.subplots()
+sns.lineplot(data=filtered_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax1)
+sns.lineplot(data=filtered_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax1)
+plt.xticks(rotation=45)
+st.pyplot(fig1)
 
-# Prepare input data for prediction
-input_df = pd.DataFrame({
-    'Country': [country],
-    'Sector': [sector],
-    'Year': [year_range[0]],
-    'EducationLevel': [education]
-})
+# Bar chart: AI vs Automation Impact
+st.subheader("AI vs Automation Impact")
+fig2, ax2 = plt.subplots()
+bar_width = 0.35
+years = filtered_df["Year"].astype(str)
+x = range(len(years))
+ax2.bar(x, filtered_df["Avg_Automation_Impact"], width=bar_width, label="Automation")
+ax2.bar([i + bar_width for i in x], filtered_df["Avg_AI_Role_Jobs"], width=bar_width, label="AI Role Jobs")
+ax2.set_xticks([i + bar_width / 2 for i in x])
+ax2.set_xticklabels(years, rotation=45)
+ax2.set_ylabel("Impact")
+ax2.legend()
+st.pyplot(fig2)
 
-# Encode input using saved label encoders
-for col in ['Country', 'Sector', 'EducationLevel']:
-    input_df[col] = label_encoders[col].transform(input_df[col])
+# Prediction button
+if st.button("Predict Future Impact"):
+    # Prepare prediction input (first year in the selected range)
+    input_df = pd.DataFrame({
+        'Country': [country],
+        'Sector': [sector],
+        'Year': [year_range[0]],
+        'EducationLevel': [education]
+    })
 
-# Fill missing values
-input_df.fillna(df.mean(numeric_only=True), inplace=True)
+    # Add the rest of the features using mean from original dataset
+    additional_features = [
+        'Avg_PreAI', 'Avg_PostAI', 'Avg_Automation_Impact', 'Avg_AI_Role_Jobs',
+        'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Skill_Level', 'Skills_Gap',
+        'Reskilling_Demand', 'Upskilling_Programs', 'Automation_Impact_Level',
+        'Revenue', 'Growth_Rate', 'AI_Adoption_Rate', 'Automation_Level',
+        'Sector_Impact_Score', 'Tech_Investment', 'Sector_Growth_Decline',
+        'Male_Percentage', 'Female_Percentage'
+    ]
+    
+    for col in additional_features:
+        input_df[col] = df[col].mean()
 
-# Optional extra categorical columns (will be ignored if not present)
-categorical_cols = ['Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
-for col in categorical_cols:
-    if col in df.columns:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col].astype(str))
+    # Apply label encoding to categorical variables
+    for col in ['Country', 'Sector', 'EducationLevel']:
+        input_df[col] = label_encoders[col].transform(input_df[col])
 
-# Match input_df columns to training data
-feature_cols = [col for col in df.columns if col != 'Avg_SectorGrowth']
-X_encoded = pd.get_dummies(df[feature_cols])
-input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
+    # Predict using model
+    prediction = model.predict(input_df)[0]
 
-# Make prediction
-prediction = model.predict(input_encoded)[0]
-st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
-
-# ---------- Visualizations ----------
-
-st.markdown("---")
-st.header(f"🌍 Country Comparison ({year_range[0]} to {year_range[1]})")
-col1, col2 = st.columns(2)
-country1 = col1.selectbox("Country 1", sorted(df['Country'].unique()), key="c1")
-country2 = col2.selectbox("Country 2", [c for c in sorted(df['Country'].unique()) if c != country1], key="c2")
-
-compare_df = df[(df['Country'].isin([country1, country2])) & (df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-fig1 = px.bar(compare_df, x='Sector', y='Avg_Automation_Impact', color='Country',
-              barmode='group', title=f'{country1} vs {country2} Automation Impact')
-st.plotly_chart(fig1, use_container_width=True)
-
-# Unemployment Trends
-st.markdown("---")
-st.header("📈 Unemployment Trend Over Time")
-trend_df = df[(df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-trend_df = trend_df.groupby('Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig2 = px.line(trend_df, x='Year', y=['Avg_PreAI', 'Avg_PostAI'], title='Pre-AI vs Post-AI Unemployment Trends')
-st.plotly_chart(fig2, use_container_width=True)
-
-# Sector-wise Trends
-st.markdown("---")
-st.header("🏭 Sector-wise Comparison")
-sector_selected = st.selectbox("Select Sector", sorted(df['Sector'].unique()), key="sector_select")
-sector_df = df[(df['Sector'] == sector_selected) & (df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-sector_grouped = sector_df.groupby('Year')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig3 = px.bar(sector_grouped, x='Year', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title=f'{sector_selected} Sector Trend')
-st.plotly_chart(fig3, use_container_width=True)
-
-# Education Level Impact
-st.markdown("---")
-st.header("🎓 Education Level Impact")
-edu_df = df[(df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-edu_grouped = edu_df.groupby('EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig4 = px.bar(edu_grouped, x='EducationLevel', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title='Education Level Impact')
-st.plotly_chart(fig4, use_container_width=True)
-
-# Country vs Sector Automation
-st.markdown("---")
-st.header("🌐 Country-Sector Automation Impact")
-col1, col2 = st.columns(2)
-country_vs = col1.selectbox("Country", sorted(df['Country'].unique()), key="country_vs")
-sector_vs = col2.selectbox("Compare With Sector (or All)", ['All'] + sorted(df['Sector'].unique()), key="sector_vs")
-
-filter_df = df[(df['Country'] == country_vs) & (df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-if sector_vs != 'All':
-    filter_df = filter_df[filter_df['Sector'] == sector_vs]
-
-fig5 = px.bar(filter_df, x='Sector', y='Avg_Automation_Impact', color='Year',
-              title=f'{country_vs} Sector-wise Automation Impact')
-st.plotly_chart(fig5, use_container_width=True)
-
-# Export Prediction
-st.markdown("---")
-if st.button("💾 Save Prediction to CSV"):
-    input_df['Predicted_Automation_Impact'] = prediction
-    input_df.to_csv("saved_prediction.csv", index=False)
-    st.success("📁 Prediction saved as `saved_prediction.csv`")
-
-# Footer
-st.markdown("---")
-st.caption("📊 Built with ❤️ by Kanisha Pathy | Powered by Streamlit + Plotly + XGBoost")
+    # Display prediction
+    st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
