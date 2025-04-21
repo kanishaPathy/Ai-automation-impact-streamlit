@@ -26,12 +26,22 @@ input_df = pd.DataFrame({
     'Education_Level': [education]
 })
 
-# Encode input like training data
-X_encoded = pd.get_dummies(df.drop(columns=['Avg_Automation_Impact']))
+# # Encode input like training data
+# X_encoded = pd.get_dummies(df.drop(columns=['Avg_Automation_Impact']))
+# input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
+
+
+# with st.spinner("Predicting Automation Impact..."):
+#     prediction = model.predict(input_encoded)[0]
+# Get the training data's feature names (encoded columns)
+X_encoded = pd.get_dummies(training_data)
+
+# Reindex the input data to match the training data's feature set
 input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
-with st.spinner("Predicting Automation Impact..."):
-    prediction = model.predict(input_encoded)[0]
+# Make the prediction
+prediction = model.predict(input_encoded)[0]
+
 
 st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
 
