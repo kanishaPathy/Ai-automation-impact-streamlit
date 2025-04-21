@@ -84,3 +84,38 @@ if st.button("Predict Future Impact"):
 
     # Display prediction
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+#Reskilling
+st.subheader("Reskilling & Upskilling Programs Trend")
+fig3, ax3 = plt.subplots()
+sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
+sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
+ax3.set_ylabel("Programs / Demand Level")
+ax3.set_xticks(filtered_df["Year"].unique())
+ax3.tick_params(axis='x', rotation=45)
+st.pyplot(fig3)
+
+#Gender
+
+st.subheader("Gender Distribution in Employment (%)")
+fig4, ax4 = plt.subplots()
+bar_width = 0.4
+x = range(len(filtered_df["Year"]))
+ax4.bar(x, filtered_df["Male_Percentage"], width=bar_width, label="Male")
+ax4.bar([i + bar_width for i in x], filtered_df["Female_Percentage"], width=bar_width, label="Female")
+ax4.set_xticks([i + bar_width / 2 for i in x])
+ax4.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
+ax4.set_ylabel("Percentage")
+ax4.legend()
+st.pyplot(fig4)
+
+#Technology
+st.subheader("Tech Investment vs AI Adoption Rate")
+fig5, ax5 = plt.subplots()
+sns.lineplot(data=filtered_df, x="Year", y="Tech_Investment", label="Tech Investment", marker="o", ax=ax5)
+sns.lineplot(data=filtered_df, x="Year", y="AI_Adoption_Rate", label="AI Adoption Rate", marker="o", ax=ax5)
+ax5.set_ylabel("Values")
+ax5.set_xticks(filtered_df["Year"].unique())
+ax5.tick_params(axis='x', rotation=45)
+st.pyplot(fig5)
+
+
