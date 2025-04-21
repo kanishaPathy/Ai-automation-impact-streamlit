@@ -7,6 +7,11 @@ import plotly.express as px
 model = joblib.load("xgboost_model_ai_impact.pkl")
 df = pd.read_csv("merged_data_updated.csv")
 
+# Assuming you have the training data available for column matching
+# If you don't, load your original training data
+training_data = pd.read_csv("training_data.csv")  # Ensure this is the dataset used for training
+
+# Prepare input data for prediction
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
@@ -18,7 +23,7 @@ country = col2.selectbox("Country", sorted(df['Country'].unique()))
 sector = col3.selectbox("Sector", sorted(df['Sector'].unique()))
 education = col4.selectbox("Education Level", sorted(df['EducationLevel'].unique()))
 
-# Prepare input data for prediction (first year of selected range)
+# Prepare input dataframe for prediction (first year of selected range)
 input_df = pd.DataFrame({
     'Country': [country],
     'Sector': [sector],
@@ -26,15 +31,14 @@ input_df = pd.DataFrame({
     'Education_Level': [education]
 })
 
-# Get the training data's feature names (encoded columns)
-X_encoded = pd.get_dummies(df.drop(columns=['Avg_Automation_Impact']))  # Drop target column during encoding
+# Encode input data like the training data
+X_encoded = pd.get_dummies(training_data.drop(columns=['Avg_Automation_Impact']))
 
 # Reindex the input data to match the training data's feature set
 input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
 # Make the prediction
-with st.spinner("Predicting Automation Impact..."):
-    prediction = model.predict(input_encoded)[0]
+prediction = model.predict(input_encoded)[0]
 
 st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
 
@@ -50,6 +54,7 @@ fig1 = px.bar(compare_df, x='Sector', y='Avg_Automation_Impact', color='Country'
               barmode='group', title=f'{country1} vs {country2} Automation Impact')
 st.plotly_chart(fig1, use_container_width=True)
 
+# Continue with the rest of your visualizations...
 # Unemployment Trends
 st.markdown("---")
 st.header("📈 Unemployment Trend Over Time")
