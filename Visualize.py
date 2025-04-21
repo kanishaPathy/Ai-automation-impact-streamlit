@@ -11,6 +11,12 @@ label_encoders = joblib.load("label_encoders.pkl")
 # Load the dataset
 df = pd.read_csv("merged_data_updated.csv")
 
+# Clean up column names by removing '_x' and '_y'
+df.columns = df.columns.str.replace('_x', '').str.replace('_y', '')
+
+# Verify column names to ensure no unwanted suffixes are present
+st.write(df.columns)
+
 # ---------- User Inputs Section ----------
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
@@ -33,10 +39,7 @@ input_df = pd.DataFrame({
 # ---------- Encoding for input data ----------
 # Encode the categorical variables using the pre-fitted label encoders
 for col in ['Country', 'Sector', 'EducationLevel']:
-    if col in input_df.columns:
-        input_df[col] = label_encoders[col].transform(input_df[col])
-    else:
-        st.error(f"Column '{col}' not found in input data")
+    input_df[col] = label_encoders[col].transform(input_df[col])
 
 # Handle missing values (if needed, use the same method as during training)
 input_df.fillna(df.mean(numeric_only=True), inplace=True)
@@ -44,11 +47,9 @@ input_df.fillna(df.mean(numeric_only=True), inplace=True)
 # Now, for the other categorical columns like Skill_Level, Automation_Impact_Level, etc.
 categorical_cols = ['Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
 for col in categorical_cols:
-    if col in input_df.columns:
+    if col in input_df.columns:  # Ensure the column exists
         le = LabelEncoder()
         input_df[col] = le.fit_transform(input_df[col].astype(str))
-    else:
-        st.warning(f"Column '{col}' not found in input data. Skipping encoding for this column.")
 
 # Get the features (excluding the target column)
 feature_cols = [col for col in df.columns if col != 'Avg_SectorGrowth']
@@ -64,6 +65,7 @@ prediction = model.predict(input_encoded)[0]
 st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
 
 # ---------- Visualizations ----------
+
 st.markdown("---")
 st.header(f"🌍 Country Comparison ({year_range[0]} to {year_range[1]})")
 col1, col2 = st.columns(2)
@@ -75,7 +77,6 @@ fig1 = px.bar(compare_df, x='Sector', y='Avg_Automation_Impact', color='Country'
               barmode='group', title=f'{country1} vs {country2} Automation Impact')
 st.plotly_chart(fig1, use_container_width=True)
 
-# Continue with the rest of your visualizations...
 # Unemployment Trends
 st.markdown("---")
 st.header("📈 Unemployment Trend Over Time")
