@@ -28,7 +28,7 @@ input_df = pd.DataFrame({
 
 # ---------- Encoding for input data ----------
 # Load the label encoders for categorical columns
-label_encoders = joblib.load('label_encoders.pkl')  # You should save your label encoders separately
+label_encoders = joblib.load("xgboost_model_ai_impact.pkl")  # You should save your label encoders separately
 for col in ['Country', 'Sector', 'Education_Level']:
     input_df[col] = label_encoders[col].transform(input_df[col])
 
