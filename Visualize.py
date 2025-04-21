@@ -118,4 +118,21 @@ ax5.set_xticks(filtered_df["Year"].unique())
 ax5.tick_params(axis='x', rotation=45)
 st.pyplot(fig5)
 
+#Growth
+st.subheader("Sector Growth/Decline Over Time")
+fig6, ax6 = plt.subplots()
+sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
+ax6.set_ylabel("Growth/Decline Index")
+ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
+st.pyplot(fig6)
+#Automation level by year
+
+st.subheader("Automation Level by Year")
+fig7, ax7 = plt.subplots()
+sns.lineplot(data=filtered_df, x="Year", y="Automation_Level", marker="o", ax=ax7)
+ax7.set_ylabel("Automation Level")
+ax7.set_xticks(filtered_df["Year"].unique())
+ax7.tick_params(axis='x', rotation=45)
+st.pyplot(fig7)
+
 
