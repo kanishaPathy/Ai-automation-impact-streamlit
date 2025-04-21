@@ -91,14 +91,16 @@ if st.button("Predict Future Impact"):
         input_df[col] = label_encoders[col].transform(input_df[col])
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-
-# --- Reskilling ---
+    
+#Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
-fig3, ax3 = plt.subplots(figsize=(6, 3))
-sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
-sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
-ax3.tick_params(axis='x', rotation=45)
-st.pyplot(fig3)
+col3, _ = st.columns([2, 1])
+with col3:
+    fig3, ax3 = plt.subplots(figsize=(6, 3))
+    sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
+    sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
+    ax3.tick_params(axis='x', rotation=45)
+    st.pyplot(fig3)
 
 # --- Gender ---
 st.subheader("Gender Distribution in Employment (%)")
