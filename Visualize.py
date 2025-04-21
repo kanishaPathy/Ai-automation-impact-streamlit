@@ -16,7 +16,7 @@ col1, col2, col3, col4 = st.columns(4)
 year_range = col1.slider("Select Year Range", int(df['Year'].min()), int(df['Year'].max()), (2010, 2022))
 country = col2.selectbox("Country", sorted(df['Country'].unique()))
 sector = col3.selectbox("Sector", sorted(df['Sector'].unique()))
-education = col4.selectbox("Education Level", sorted(df['Education_Level'].unique()))
+education = col4.selectbox("Education Level", sorted(df['EducationLevel'].unique()))
 
 # Prepare input data for prediction (first year of selected range)
 input_df = pd.DataFrame({
