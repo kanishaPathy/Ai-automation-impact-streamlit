@@ -27,7 +27,7 @@ input_df = pd.DataFrame({
     'Country': [country],
     'Sector': [sector],
     'Year': [year_range[0]],
-    'Education_Level': [education]
+    'EducationLevel': [education]
 })
 
 # ---------- Encoding for input data ----------
