@@ -32,7 +32,7 @@ input_df = pd.DataFrame({
 
 # ---------- Encoding for input data ----------
 # Encode the categorical variables using the pre-fitted label encoders
-for col in ['Country', 'Sector', 'Education_Level']:
+for col in ['Country', 'Sector', 'EducationLevel']:
     input_df[col] = label_encoders[col].transform(input_df[col])
 
 # Handle missing values (if needed, use the same method as during training)
@@ -91,8 +91,8 @@ st.plotly_chart(fig3, use_container_width=True)
 st.markdown("---")
 st.header("🎓 Education Level Impact")
 edu_df = df[(df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
-edu_grouped = edu_df.groupby('Education_Level')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
-fig4 = px.bar(edu_grouped, x='Education_Level', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title='Education Level Impact')
+edu_grouped = edu_df.groupby('EducationLevel')[['Avg_PreAI', 'Avg_PostAI']].mean().reset_index()
+fig4 = px.bar(edu_grouped, x='EducationLevel', y=['Avg_PreAI', 'Avg_PostAI'], barmode='group', title='Education Level Impact')
 st.plotly_chart(fig4, use_container_width=True)
 
 # Country vs All Sectors
