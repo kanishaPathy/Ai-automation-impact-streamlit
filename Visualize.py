@@ -40,8 +40,14 @@ input_df.fillna(df.mean(numeric_only=True), inplace=True)
 
 # Now, for the other categorical columns like Skill_Level, Automation_Impact_Level, etc.
 categorical_cols = ['Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
+
+# Convert 'Skill_Level' and other columns to string and then apply label encoding
 for col in categorical_cols:
-    le = LabelEncoder()
+    if df[col].dtype == 'int32':  # Check if column is numerical (int32)
+        input_df[col] = input_df[col].astype(str)  # Convert to string if needed
+    
+    # Apply LabelEncoder for categorical columns
+    le = label_encoders.get(col, LabelEncoder())  # Retrieve the encoder or create a new one
     input_df[col] = le.fit_transform(input_df[col].astype(str))
 
 # Get the features (excluding the target column)
