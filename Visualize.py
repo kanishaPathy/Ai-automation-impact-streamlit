@@ -179,7 +179,7 @@ else:
     ax_impact.set_ylabel("Avg Impact Score")
     ax_impact.set_title("Sector-Wise Avg Impact")
     st.pyplot(fig_impact)
-#Country Comparison
+# Country Comparison
 st.header("🌍 Country Comparison from 2010 to 2022")
 
 # Country selectors
@@ -196,8 +196,14 @@ else:
     st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
 
     fig_cmp, ax_cmp = plt.subplots()
-    sns.lineplot(data=country_df, x="Year", y="Avg_PreAI", hue="Country", marker="o", ax=ax_cmp, linestyle='--', label='Pre-AI')
-    sns.lineplot(data=country_df, x="Year", y="Avg_PostAI", hue="Country", marker="o", ax=ax_cmp, label='Post-AI')
+    sns.lineplot(
+        data=country_df, x="Year", y="Avg_PreAI",
+        hue="Country", marker="o", ax=ax_cmp, linestyle='--'
+    )
+    sns.lineplot(
+        data=country_df, x="Year", y="Avg_PostAI",
+        hue="Country", marker="o", ax=ax_cmp
+    )
     ax_cmp.set_ylabel("Unemployment Rate")
     ax_cmp.set_title("Country-wise Unemployment Trend")
     ax_cmp.tick_params(axis='x', rotation=45)
