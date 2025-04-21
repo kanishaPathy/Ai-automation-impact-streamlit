@@ -134,5 +134,50 @@ ax7.set_ylabel("Automation Level")
 ax7.set_xticks(filtered_df["Year"].unique())
 ax7.tick_params(axis='x', rotation=45)
 st.pyplot(fig7)
+#Country vs all sectors
+
+st.header("📊 Country vs Selected Sectors Comparison")
+
+# Filters
+selected_country = st.selectbox("Select Country", sorted(df["Country"].unique()), key="country_sector_view")
+available_sectors = df["Sector"].unique()
+selected_sectors = st.multiselect("Select Sectors", sorted(available_sectors), default=list(available_sectors[:2]), key="sector_multi")
+
+# Filter data
+comparison_df = df[
+    (df["Country"] == selected_country) & 
+    (df["Sector"].isin(selected_sectors))
+]
+
+# Check if data exists
+if comparison_df.empty:
+    st.warning("No data available for the selected filters.")
+else:
+    # Line chart: AI Adoption Rate by Sector
+    st.subheader(f"AI Adoption Rate over Years in {selected_country}")
+    fig_sector_ai, ax_ai = plt.subplots()
+    sns.lineplot(data=comparison_df, x="Year", y="AI_Adoption_Rate", hue="Sector", marker="o", ax=ax_ai)
+    ax_ai.set_ylabel("AI Adoption Rate")
+    ax_ai.set_xticks(sorted(comparison_df["Year"].unique()))
+    ax_ai.tick_params(axis='x', rotation=45)
+    st.pyplot(fig_sector_ai)
+
+    # Line chart: Automation Level
+    st.subheader(f"Automation Level over Years in {selected_country}")
+    fig_sector_auto, ax_auto = plt.subplots()
+    sns.lineplot(data=comparison_df, x="Year", y="Automation_Level", hue="Sector", marker="o", ax=ax_auto)
+    ax_auto.set_ylabel("Automation Level")
+    ax_auto.set_xticks(sorted(comparison_df["Year"].unique()))
+    ax_auto.tick_params(axis='x', rotation=45)
+    st.pyplot(fig_sector_auto)
+
+    # Bar plot: Sector Impact Score (average over years)
+    st.subheader(f"Average Sector Impact Score in {selected_country}")
+    avg_impact_df = comparison_df.groupby("Sector")["Sector_Impact_Score"].mean().reset_index()
+    fig_impact, ax_impact = plt.subplots()
+    sns.barplot(data=avg_impact_df, x="Sector", y="Sector_Impact_Score", palette="viridis", ax=ax_impact)
+    ax_impact.set_ylabel("Avg Impact Score")
+    ax_impact.set_title("Sector-Wise Avg Impact")
+    st.pyplot(fig_impact)
 
 
