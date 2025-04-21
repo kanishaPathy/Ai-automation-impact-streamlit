@@ -4,8 +4,8 @@ import streamlit as st
 import plotly.express as px
 
 # Load model and data
-model = joblib.load("C:/Users/Kanisha Pathy/OneDrive/Desktop/KP/Project-Updated_AI_impact/xgboost_model_ai_impact.pkl")
-df = pd.read_csv("C:/Users/Kanisha Pathy/OneDrive/Desktop/KP/Project-Updated_AI_impact/merged_data_updated.csv")
+model = joblib.load("xgboost_model_ai_impact.pkl")
+df = pd.read_csv("merged_data_updated.csv")
 
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
