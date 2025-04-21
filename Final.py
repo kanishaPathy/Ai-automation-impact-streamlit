@@ -46,13 +46,28 @@ filtered_df = df[
 
 # --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
-col1, _ = st.columns([2, 1])  # Narrow second column to keep plot small
+
+# Narrow second column to keep plot small
+col1, _ = st.columns([2, 1])  
 with col1:
+    # Create a line plot for pre-AI and post-AI unemployment trends
     fig1, ax1 = plt.subplots(figsize=(6, 3))
+    
+    # Plot Pre-AI data
     sns.lineplot(data=filtered_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax1)
+    
+    # Plot Post-AI data
     sns.lineplot(data=filtered_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax1)
-    ax1.tick_params(axis='x', rotation=45)
+    
+    # Customize axis labels and tick angles
+    ax1.set_title("Unemployment Impact Before vs After AI")
+    ax1.set_xlabel("Year")
+    ax1.set_ylabel("Average Unemployment Rate")
+    ax1.tick_params(axis='x', rotation=45)  # Rotate x-axis labels for better readability
+    
+    # Display plot in Streamlit app
     st.pyplot(fig1)
+
 
 # --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
