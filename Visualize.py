@@ -7,11 +7,6 @@ import plotly.express as px
 model = joblib.load("xgboost_model_ai_impact.pkl")
 df = pd.read_csv("merged_data_updated.csv")
 
-# Assuming you have the training data available for column matching
-# If you don't, load your original training data
-training_data = pd.read_csv("merged_data_updated.csv")  # Ensure this is the dataset used for training
-
-# Prepare input data for prediction
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
@@ -23,7 +18,7 @@ country = col2.selectbox("Country", sorted(df['Country'].unique()))
 sector = col3.selectbox("Sector", sorted(df['Sector'].unique()))
 education = col4.selectbox("Education Level", sorted(df['EducationLevel'].unique()))
 
-# Prepare input dataframe for prediction (first year of selected range)
+# Prepare input data for prediction (first year of selected range)
 input_df = pd.DataFrame({
     'Country': [country],
     'Sector': [sector],
@@ -31,10 +26,21 @@ input_df = pd.DataFrame({
     'Education_Level': [education]
 })
 
-# Encode input data like the training data
-X_encoded = pd.get_dummies(training_data.drop(columns=['Avg_Automation_Impact']))
+# ---------- Encoding for input data ----------
+# Load the label encoders for categorical columns
+label_encoders = joblib.load('label_encoders.pkl')  # You should save your label encoders separately
+for col in ['Country', 'Sector', 'Education_Level']:
+    input_df[col] = label_encoders[col].transform(input_df[col])
 
-# Reindex the input data to match the training data's feature set
+# Handle missing values (if needed, use the same method as during training)
+input_df.fillna(df.mean(numeric_only=True), inplace=True)
+
+# Get the features (excluding the target column)
+feature_cols = [col for col in df.columns if col != 'Avg_SectorGrowth']
+input_df = input_df[feature_cols]
+
+# Ensure the input data is consistent with training data (e.g., dummy variables)
+X_encoded = pd.get_dummies(df[feature_cols])  # Create dummies for training data
 input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
 # Make the prediction
