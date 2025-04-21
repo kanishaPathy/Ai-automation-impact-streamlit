@@ -1,16 +1,20 @@
+from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 import joblib
 import streamlit as st
 import plotly.express as px
 
-# Load model and data
+# Load the trained model and label encoders
 model = joblib.load("xgboost_model_ai_impact.pkl")
+label_encoders = joblib.load("label_encoders.pkl")
+
+# Load the dataset
 df = pd.read_csv("merged_data_updated.csv")
 
+# ---------- User Inputs Section ----------
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
 
-# ---------- User Inputs Section ----------
 st.markdown("### 🎯 Select Parameters for Prediction")
 col1, col2, col3, col4 = st.columns(4)
 year_range = col1.slider("Select Year Range", int(df['Year'].min()), int(df['Year'].max()), (2010, 2022))
@@ -27,13 +31,18 @@ input_df = pd.DataFrame({
 })
 
 # ---------- Encoding for input data ----------
-# Load the label encoders for categorical columns
-label_encoders = joblib.load("xgboost_model_ai_impact.pkl")  # You should save your label encoders separately
+# Encode the categorical variables using the pre-fitted label encoders
 for col in ['Country', 'Sector', 'Education_Level']:
     input_df[col] = label_encoders[col].transform(input_df[col])
 
 # Handle missing values (if needed, use the same method as during training)
 input_df.fillna(df.mean(numeric_only=True), inplace=True)
+
+# Now, for the other categorical columns like Skill_Level, Automation_Impact_Level, etc.
+categorical_cols = ['Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
+for col in categorical_cols:
+    le = LabelEncoder()
+    input_df[col] = le.fit_transform(input_df[col].astype(str))
 
 # Get the features (excluding the target column)
 feature_cols = [col for col in df.columns if col != 'Avg_SectorGrowth']
