@@ -51,7 +51,7 @@ st.subheader("Unemployment Impact Before vs After AI")
 col1 = st.columns([1])[0]  # Single centered column
 with col1:
     # Create a line plot for pre-AI and post-AI unemployment trends
-    fig1, ax1 = plt.subplots(figsize=(6, 3))
+    fig1, ax1 = plt.subplots(figsize=(8, 4))  # Adjusted size for better display
     
     # Plot Pre-AI data
     sns.lineplot(data=filtered_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax1)
@@ -66,8 +66,7 @@ with col1:
     ax1.tick_params(axis='x', rotation=45)  # Rotate x-axis labels for better readability
     
     # Display plot in Streamlit app
-    st.pyplot(fig1)
-
+    st.pyplot(fig1, use_container_width=True)  # This ensures the plot scales properly inside the container
 
 # --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
