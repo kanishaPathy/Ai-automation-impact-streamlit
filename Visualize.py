@@ -179,5 +179,63 @@ else:
     ax_impact.set_ylabel("Avg Impact Score")
     ax_impact.set_title("Sector-Wise Avg Impact")
     st.pyplot(fig_impact)
+#Country Comparison
+st.header("🌍 Country Comparison from 2010 to 2022")
+
+# Country selectors
+country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
+country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
+
+# Filtered data for both countries
+country_df = df[df["Country"].isin([country1, country2]) & df["Year"].between(2010, 2022)]
+
+if country_df.empty:
+    st.warning("No data available for selected countries and years.")
+else:
+    # Comparison: Pre-AI vs Post-AI Unemployment
+    st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
+
+    fig_cmp, ax_cmp = plt.subplots()
+    sns.lineplot(data=country_df, x="Year", y="Avg_PreAI", hue="Country", marker="o", ax=ax_cmp, linestyle='--', label='Pre-AI')
+    sns.lineplot(data=country_df, x="Year", y="Avg_PostAI", hue="Country", marker="o", ax=ax_cmp, label='Post-AI')
+    ax_cmp.set_ylabel("Unemployment Rate")
+    ax_cmp.set_title("Country-wise Unemployment Trend")
+    ax_cmp.tick_params(axis='x', rotation=45)
+    st.pyplot(fig_cmp)
+
+    # Comparison: AI Adoption Rate
+    st.subheader("AI Adoption Rate Comparison")
+    fig_ai, ax_ai = plt.subplots()
+    sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
+    ax_ai.set_ylabel("AI Adoption Rate")
+    ax_ai.set_title("AI Adoption Rate (2010-2022)")
+    ax_ai.tick_params(axis='x', rotation=45)
+    st.pyplot(fig_ai)
+
+#Sector wise
+st.header("🏭 Sector-wise Unemployment Comparison")
+
+# Select sector and year range
+selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
+sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
+
+# Filtered sector data
+sector_df = df[
+    (df["Sector"] == selected_sector) &
+    (df["Year"].between(sector_year_range[0], sector_year_range[1]))
+]
+
+if sector_df.empty:
+    st.warning("No data found for selected sector and years.")
+else:
+    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
+    
+    fig_sector, ax_sector = plt.subplots()
+    sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
+    sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
+    ax_sector.set_ylabel("Unemployment Rate")
+    ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
+    ax_sector.tick_params(axis='x', rotation=45)
+    st.pyplot(fig_sector)
 
 
