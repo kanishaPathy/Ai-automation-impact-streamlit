@@ -104,60 +104,68 @@ with col3:
 
 # --- Gender ---
 st.subheader("Gender Distribution in Employment (%)")
-fig4, ax4 = plt.subplots(figsize=(6, 3))
-bar_width = 0.4
-x = range(len(filtered_df["Year"]))
-ax4.bar(x, filtered_df["Male_Percentage"], width=bar_width, label="Male")
-ax4.bar([i + bar_width for i in x], filtered_df["Female_Percentage"], width=bar_width, label="Female")
-ax4.set_xticks([i + bar_width / 2 for i in x])
-ax4.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
-ax4.legend()
-st.pyplot(fig4)
+col4, _ = st.columns([2, 1])
+with col4:
+    fig4, ax4 = plt.subplots(figsize=(6, 3))
+    bar_width = 0.4
+    x = range(len(filtered_df["Year"]))
+    ax4.bar(x, filtered_df["Male_Percentage"], width=bar_width, label="Male")
+    ax4.bar([i + bar_width for i in x], filtered_df["Female_Percentage"], width=bar_width, label="Female")
+    ax4.set_xticks([i + bar_width / 2 for i in x])
+    ax4.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
+    ax4.legend()
+    st.pyplot(fig4)
 
 # --- Tech Investment vs AI Adoption ---
 st.subheader("Tech Investment vs AI Adoption Rate")
-fig5, ax5 = plt.subplots(figsize=(6, 3))
-sns.lineplot(data=filtered_df, x="Year", y="Tech_Investment", label="Tech Investment", marker="o", ax=ax5)
-sns.lineplot(data=filtered_df, x="Year", y="AI_Adoption_Rate", label="AI Adoption Rate", marker="o", ax=ax5)
-ax5.tick_params(axis='x', rotation=45)
-st.pyplot(fig5)
+col5, _ = st.columns([2, 1])
+with col5:
+    fig5, ax5 = plt.subplots(figsize=(6, 3))
+    sns.lineplot(data=filtered_df, x="Year", y="Tech_Investment", label="Tech Investment", marker="o", ax=ax5)
+    sns.lineplot(data=filtered_df, x="Year", y="AI_Adoption_Rate", label="AI Adoption Rate", marker="o", ax=ax5)
+    ax5.tick_params(axis='x', rotation=45)
+    st.pyplot(fig5)
 
 # --- Sector Growth ---
 st.subheader("Sector Growth/Decline Over Time")
-fig6, ax6 = plt.subplots(figsize=(6, 3))
-sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
-ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
-st.pyplot(fig6)
+col6, _ = st.columns([2, 1])
+with col6:
+    fig6, ax6 = plt.subplots(figsize=(6, 3))
+    sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
+    ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
+    st.pyplot(fig6)
 
 # --- Automation Level ---
 st.subheader("Automation Level by Year")
-fig7, ax7 = plt.subplots(figsize=(6, 3))
-sns.lineplot(data=filtered_df, x="Year", y="Automation_Level", marker="o", ax=ax7)
-ax7.tick_params(axis='x', rotation=45)
-st.pyplot(fig7)
+col7, _ = st.columns([2, 1])
+with col7:
+    fig7, ax7 = plt.subplots(figsize=(6, 3))
+    sns.lineplot(data=filtered_df, x="Year", y="Automation_Level", marker="o", ax=ax7)
+    ax7.tick_params(axis='x', rotation=45)
+    st.pyplot(fig7)
 
 # --- Plotly Chart: Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
-fig8 = px.line(
-    filtered_df,
-    x="Year",
-    y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
-    labels={"value": "Impact/Gap"},
-    title="AI's Impact on Unemployment and Skills Gap"
-)
-st.plotly_chart(fig8, use_container_width=True)
+col8, _ = st.columns([2, 1])
+with col8:
+    fig8 = px.line(
+        filtered_df,
+        x="Year",
+        y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+        labels={"value": "Impact/Gap"},
+        title="AI's Impact on Unemployment and Skills Gap"
+    )
+    st.plotly_chart(fig8, use_container_width=True)
 
 # --- Plotly Chart: AI Adoption vs Sector Growth ---
 st.subheader("AI Adoption vs Sector Growth")
-fig9 = px.bar(
-    filtered_df,
-    x="Year",
-    y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
-    barmode="group",
-    title="AI Adoption Rate vs Sector Growth Decline"
-)
-st.plotly_chart(fig9, use_container_width=True)
-
-# --- Debug Info ---
-st.write("Filtered Data:", filtered_df.head())
-st.write("Number of rows in filtered data:", filtered_df.shape[0])
+col9, _ = st.columns([2, 1])
+with col9:
+    fig9 = px.bar(
+        filtered_df,
+        x="Year",
+        y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+        barmode="group",
+        title="AI Adoption Rate vs Sector Growth Decline"
+    )
+    st.plotly_chart(fig9, use_container_width=True)
