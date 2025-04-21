@@ -169,3 +169,130 @@ with col9:
         title="AI Adoption Rate vs Sector Growth Decline"
     )
     st.plotly_chart(fig9, use_container_width=True)
+
+# --- Country vs Selected Sectors ---
+st.header("📊 Country vs Selected Sectors Comparison")
+selected_country = st.selectbox("Select Country", sorted(df["Country"].unique()), key="country_sector_view")
+available_sectors = df["Sector"].unique()
+selected_sectors = st.multiselect("Select Sectors", sorted(available_sectors), default=list(available_sectors[:2]), key="sector_multi")
+comparison_df = df[(df["Country"] == selected_country) & (df["Sector"].isin(selected_sectors))]
+
+if comparison_df.empty:
+    st.warning("No data available for the selected filters.")
+else:
+    st.subheader(f"AI Adoption Rate over Years in {selected_country}")
+    col1, _ = st.columns([2, 1])
+    with col1:
+        fig_sector_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=comparison_df, x="Year", y="AI_Adoption_Rate", hue="Sector", marker="o", ax=ax_ai)
+        ax_ai.set_ylabel("AI Adoption Rate")
+        ax_ai.set_xticks(sorted(comparison_df["Year"].unique()))
+        ax_ai.tick_params(axis='x', rotation=45)
+        fig_sector_ai.tight_layout()
+        st.pyplot(fig_sector_ai)
+
+    st.subheader(f"Automation Level over Years in {selected_country}")
+    col2, _ = st.columns([2, 1])
+    with col2:
+        fig_sector_auto, ax_auto = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=comparison_df, x="Year", y="Automation_Level", hue="Sector", marker="o", ax=ax_auto)
+        ax_auto.set_ylabel("Automation Level")
+        ax_auto.set_xticks(sorted(comparison_df["Year"].unique()))
+        ax_auto.tick_params(axis='x', rotation=45)
+        fig_sector_auto.tight_layout()
+        st.pyplot(fig_sector_auto)
+
+    st.subheader(f"Average Sector Impact Score in {selected_country}")
+    col3, _ = st.columns([2, 1])
+    with col3:
+        avg_impact_df = comparison_df.groupby("Sector")["Sector_Impact_Score"].mean().reset_index()
+        fig_impact, ax_impact = plt.subplots(figsize=(6, 2.5))
+        sns.barplot(data=avg_impact_df, x="Sector", y="Sector_Impact_Score", palette="viridis", ax=ax_impact)
+        ax_impact.set_ylabel("Avg Impact Score")
+        ax_impact.set_title("Sector-Wise Avg Impact")
+        fig_impact.tight_layout()
+        st.pyplot(fig_impact)
+
+# --- Country Comparison ---
+st.header("🌍 Country Comparison from 2010 to 2022")
+country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
+country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
+country_df = df[df["Country"].isin([country1, country2]) & df["Year"].between(2010, 2022)]
+
+if country_df.empty:
+    st.warning("No data available for selected countries and years.")
+else:
+    melted_df = pd.melt(country_df, id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"], var_name="Type", value_name="Unemployment")
+    melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
+
+    st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
+    col4, _ = st.columns([2, 1])
+    with col4:
+        fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
+        ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
+        ax_cmp.set_ylabel("Unemployment Rate")
+        ax_cmp.tick_params(axis='x', rotation=45)
+        fig_cmp.tight_layout()
+        st.pyplot(fig_cmp)
+
+    st.subheader("AI Adoption Rate Comparison")
+    col5, _ = st.columns([2, 1])
+    with col5:
+        fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
+        ax_ai.set_ylabel("AI Adoption Rate")
+        ax_ai.set_title("AI Adoption Rate (2010-2022)")
+        ax_ai.tick_params(axis='x', rotation=45)
+        fig_ai.tight_layout()
+        st.pyplot(fig_ai)
+
+# --- Sector-wise ---
+st.header("🏭 Sector-wise Unemployment Comparison")
+selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
+sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
+sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_year_range[0], sector_year_range[1]))]
+
+if sector_df.empty:
+    st.warning("No data found for selected sector and years.")
+else:
+    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
+    col6, _ = st.columns([2, 1])
+    with col6:
+        fig_sector, ax_sector = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
+        sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
+        ax_sector.set_ylabel("Unemployment Rate")
+        ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
+        ax_sector.tick_params(axis='x', rotation=45)
+        fig_sector.tight_layout()
+        st.pyplot(fig_sector)
+
+# --- Unemployment vs Skills Gap ---
+st.subheader("Unemployment Impact vs Skills Gap")
+col7, _ = st.columns([2, 1])
+with col7:
+    fig1 = px.line(
+        filtered_df,
+        x="Year",
+        y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+        labels={"value": "Impact/Gap"},
+        title="AI's Impact on Unemployment and Skills Gap"
+    )
+    fig1.update_layout(height=300)
+    st.plotly_chart(fig1, use_container_width=True)
+
+# --- AI Adoption vs Sector Growth ---
+st.subheader("AI Adoption vs Sector Growth")
+col8, _ = st.columns([2, 1])
+with col8:
+    fig2 = px.bar(
+        filtered_df,
+        x="Year",
+        y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+        barmode="group",
+        title="AI Adoption Rate vs Sector Growth Decline"
+    )
+    fig2.update_layout(height=300)
+    st.plotly_chart(fig2, use_container_width=True)
+
