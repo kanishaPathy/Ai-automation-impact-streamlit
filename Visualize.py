@@ -134,7 +134,7 @@ ax7.set_ylabel("Automation Level")
 ax7.set_xticks(filtered_df["Year"].unique())
 ax7.tick_params(axis='x', rotation=45)
 st.pyplot(fig7)
-#Country vs all sectors
+## Visualization 7:Country vs all sectors
 
 st.header("📊 Country vs Selected Sectors Comparison")
 
@@ -179,7 +179,8 @@ else:
     ax_impact.set_ylabel("Avg Impact Score")
     ax_impact.set_title("Sector-Wise Avg Impact")
     st.pyplot(fig_impact)
-# Country Comparison
+    
+## Visualization 8 Country Comparison
 st.header("🌍 Country Comparison from 2010 to 2022")
 # Country Comparison
 st.header("🌍 Country Comparison from 2010 to 2022")
@@ -188,7 +189,7 @@ st.header("🌍 Country Comparison from 2010 to 2022")
 country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
 country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
 
-# Filtered data
+# Visualization 9: Filtered data
 country_df = df[df["Country"].isin([country1, country2]) & df["Year"].between(2010, 2022)]
 
 if country_df.empty:
@@ -237,7 +238,7 @@ else:
     st.pyplot(fig_ai)
 
 
-#Sector wise
+# Visualization 11:Sector wise
 st.header("🏭 Sector-wise Unemployment Comparison")
 
 # Select sector and year range
@@ -262,5 +263,26 @@ else:
     ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
     ax_sector.tick_params(axis='x', rotation=45)
     st.pyplot(fig_sector)
+    
+# Visualization 10: Unemployment vs Skills Gap
+st.subheader("Unemployment Impact vs Skills Gap")
+fig1 = px.line(filtered_df, x="Year", 
+               y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+               labels={"value": "Impact/Gap"}, 
+               title="AI's Impact on Unemployment and Skills Gap")
+st.plotly_chart(fig1)
+
+# Visualization 6: AI Adoption vs Sector Growth
+st.subheader("AI Adoption vs Sector Growth")
+fig2 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+              barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
+st.plotly_chart(fig2)
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
+
+# Check the shape of filtered_df before transformation
+st.write("Filtered Data Preview:", filtered_df.head())  # Display first few rows
+st.write("Number of rows in filtered data:", filtered_df.shape[0])
 
 
