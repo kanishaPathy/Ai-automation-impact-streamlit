@@ -13,13 +13,25 @@ label_encoders = joblib.load("label_encoders.pkl")
 df = pd.read_csv("FINAL__Compressed_Dataset.csv.gz")
 
 # App title
-st.title("AI & Automation Impact Prediction Dashboard")
+st.set_page_config(page_title="AI Automation Impact", layout="wide")
+st.title("🤖 AI Automation Impact Prediction & Insights")
 
-# Sidebar filters
-country = st.sidebar.selectbox("Select Country", sorted(df["Country"].unique()))
-sector = st.sidebar.selectbox("Select Sector", sorted(df["Sector"].unique()))
-education = st.sidebar.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
-year_range = st.sidebar.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2015, 2024))
+# ---------- User Inputs Section ----------
+st.markdown("### 🎯 Select Parameters for Prediction")
+
+# Create 4 side-by-side columns
+col1, col2, col3, col4 = st.columns(4)
+
+# Inline controls instead of sidebar
+year_range = col1.slider(
+    "Select Year Range",
+    int(df["Year"].min()),
+    int(df["Year"].max()),
+    (2015, 2024)
+)
+country = col2.selectbox("Select Country", sorted(df["Country"].unique()))
+sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
+education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
 
 # Filtered data for visualizations
 filtered_df = df[
