@@ -6,8 +6,8 @@ import joblib
 import xgboost as xgb
 
 # Load model and encoders
-model = joblib.load("models/xgboost_model.pkl")
-label_encoders = joblib.load("models/label_encoders.pkl")
+model = joblib.load("xgboost_model.pkl")
+label_encoders = joblib.load("label_encoders.pkl")
 
 # Load datasets
 df = pd.read_csv("merged_data_updated.csv")
