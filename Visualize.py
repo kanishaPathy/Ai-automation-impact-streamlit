@@ -33,22 +33,22 @@ input_df = pd.DataFrame({
 # ---------- Encoding for input data ----------
 # Encode the categorical variables using the pre-fitted label encoders
 for col in ['Country', 'Sector', 'EducationLevel']:
-    input_df[col] = label_encoders[col].transform(input_df[col])
+    if col in input_df.columns:
+        input_df[col] = label_encoders[col].transform(input_df[col])
+    else:
+        st.error(f"Column '{col}' not found in input data")
 
 # Handle missing values (if needed, use the same method as during training)
 input_df.fillna(df.mean(numeric_only=True), inplace=True)
 
 # Now, for the other categorical columns like Skill_Level, Automation_Impact_Level, etc.
 categorical_cols = ['Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
-
-# Convert 'Skill_Level' and other columns to string and then apply label encoding
 for col in categorical_cols:
-    if df[col].dtype == 'int32':  # Check if column is numerical (int32)
-        input_df[col] = input_df[col].astype(str)  # Convert to string if needed
-    
-    # Apply LabelEncoder for categorical columns
-    le = label_encoders.get(col, LabelEncoder())  # Retrieve the encoder or create a new one
-    input_df[col] = le.fit_transform(input_df[col].astype(str))
+    if col in input_df.columns:
+        le = LabelEncoder()
+        input_df[col] = le.fit_transform(input_df[col].astype(str))
+    else:
+        st.warning(f"Column '{col}' not found in input data. Skipping encoding for this column.")
 
 # Get the features (excluding the target column)
 feature_cols = [col for col in df.columns if col != 'Avg_SectorGrowth']
