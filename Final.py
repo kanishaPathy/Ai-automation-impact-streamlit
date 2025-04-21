@@ -47,8 +47,8 @@ filtered_df = df[
 # --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
 
-# Narrow second column to keep plot small
-col1, _ = st.columns([2, 1])  
+# Use a single column to center the plot
+col1 = st.columns([1])[0]  # Single centered column
 with col1:
     # Create a line plot for pre-AI and post-AI unemployment trends
     fig1, ax1 = plt.subplots(figsize=(6, 3))
