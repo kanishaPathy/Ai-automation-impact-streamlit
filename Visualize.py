@@ -9,7 +9,7 @@ df = pd.read_csv("merged_data_updated.csv")
 
 # Assuming you have the training data available for column matching
 # If you don't, load your original training data
-training_data = pd.read_csv("training_data.csv")  # Ensure this is the dataset used for training
+training_data = pd.read_csv("merged_data_updated.csv")  # Ensure this is the dataset used for training
 
 # Prepare input data for prediction
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
