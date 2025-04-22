@@ -53,12 +53,15 @@ input_df = pd.DataFrame({
     '_id.EducationLevel': [education] * (year_range[1] - year_range[0] + 1),
 })
 
-# Encoding and predictions
+# Ensure the same feature columns for training and prediction
 X_train = df.drop(columns=['Avg_Automation_Impact'])
 X_encoded = pd.get_dummies(X_train)
 
-# Ensure columns match for prediction
-input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
+# Encode the input data in the same way as the training data
+input_encoded = pd.get_dummies(input_df)
+
+# Align the columns: reindex input_encoded to match the columns of X_encoded, filling missing values with 0
+input_encoded = input_encoded.reindex(columns=X_encoded.columns, fill_value=0)
 
 # Predict for each year in the range and display the results
 with st.spinner("Predicting Automation Impact..."):
