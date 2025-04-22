@@ -446,6 +446,9 @@ else:
             st.write(filtered_df)
 
 
+# Assuming df is already loaded as per your dataset
+# df = pd.read_csv("your_data.csv")  # Replace with your actual data loading line
+
 # Reshape the DataFrame to long format for gender distribution
 gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
     id_vars=["Country", "Sector"],
@@ -484,9 +487,9 @@ ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
 # Layout: Center the charts using Streamlit's column layout
 col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with the center column being larger
 
-# Ensure that charts are rendered only once
 with col2:  # Place the gender chart in the center column
     st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
 
+# Place the second chart in the same layout, below the first chart
 with col2:  # Place the AI-related chart in the center column
-    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
+    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)
