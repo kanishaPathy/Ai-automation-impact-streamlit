@@ -425,3 +425,13 @@ else:
     csv = alt_df.to_csv(index=False)
     st.download_button(label="⬇️ Download CSV", data=csv, file_name="education_unemployment_altair.csv", mime="text/csv")
 
+#Bubble Chart
+bubble = alt.Chart(df).mark_circle().encode(
+    x="Skill_Level:N",
+    y="Reskilling_Demand:Q",
+    size="Upskilling_Programs:Q",
+    color="Country:N",
+    tooltip=["Skill_Level", "Reskilling_Demand", "Upskilling_Programs"]
+).properties(title="Skill Level vs Reskilling Demand (by Country)").interactive()
+st.altair_chart(bubble, use_container_width=True)
+
