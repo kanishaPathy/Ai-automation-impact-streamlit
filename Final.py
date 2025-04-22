@@ -319,14 +319,20 @@ sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_ye
 if sector_df.empty:
     st.warning("No data found for selected sector and years.")
 else:
+    # Prepare the data for grouped bar
     plot_df = sector_df.melt(id_vars="Year", value_vars=["Avg_PreAI", "Avg_PostAI"], 
                              var_name="Phase", value_name="Unemployment Rate")
 
     st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
-    fig = px.bar(plot_df, x="Year", y="Unemployment Rate", color="Phase", barmode="group",
-                 title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment", height=400)
-    fig.update_layout(xaxis_tickangle=-45)
-    st.plotly_chart(fig, use_container_width=True)
+    left_col, center_col, right_col = st.columns([1, 2, 1])
+    with center_col:
+        fig, ax = plt.subplots(figsize=(7, 3))
+        sns.barplot(data=plot_df, x="Year", y="Unemployment Rate", hue="Phase", ax=ax)
+        ax.set_title(f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment")
+        ax.tick_params(axis='x', rotation=45)
+        fig.tight_layout()
+        st.pyplot(fig)
+
 
 
 # --- Unemployment vs Skills Gap ---
