@@ -38,12 +38,12 @@ sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
 education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
 
 # # Filtered data for visualizations
-# filtered_df = df[
-#     (df["Country"] == country) &
-#     (df["Sector"] == sector) &
-#     (df["EducationLevel"] == education) &
-#     (df["Year"].between(year_range[0], year_range[1]))
-# ]
+filtered_df = df[
+    (df["Country"] == country) &
+    (df["Sector"] == sector) &
+    (df["EducationLevel"] == education) &
+    (df["Year"].between(year_range[0], year_range[1]))
+]
 # Prepare input data for prediction (using first year in range)
 input_df = pd.DataFrame({
     '_id.Country': [country],
