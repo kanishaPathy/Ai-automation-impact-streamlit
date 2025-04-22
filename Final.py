@@ -379,8 +379,13 @@ with center_col:
 # --- Education Level Impact ---
 st.header("🎓 Education Level Impact on Unemployment")
 selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="education_comp")
-education_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
-education_df = df[(df["Education_Level"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
+
+# Provide a unique key for the slider
+education_year_range = st.slider("Select Year Range", 
+                                 int(df["Year"].min()), int(df["Year"].max()), 
+                                 (2010, 2022), key="education_year_range")
+
+education_df = df[(df["EducationLevel"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
 
 if education_df.empty:
     st.warning("No data found for selected education level and years.")
