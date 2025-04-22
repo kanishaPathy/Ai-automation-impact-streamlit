@@ -96,65 +96,6 @@ with center_col:
     ax2.legend()
     st.pyplot(fig2)
 
-# # --- Prediction Button ---
-# if st.button("Predict Future Impact"):
-#     input_df = pd.DataFrame({
-#         'Country': [country],
-#         'Sector': [sector],
-#         'Year': [year_range[0]],
-#         'EducationLevel': [education]
-#     })
-
-#     additional_features = [
-#         'Avg_PreAI', 'Avg_PostAI', 'Avg_Automation_Impact', 'Avg_AI_Role_Jobs',
-#         'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Skill_Level', 'Skills_Gap',
-#         'Reskilling_Demand', 'Upskilling_Programs', 'Automation_Impact_Level',
-#         'Revenue', 'Growth_Rate', 'AI_Adoption_Rate', 'Automation_Level',
-#         'Sector_Impact_Score', 'Tech_Investment', 'Sector_Growth_Decline',
-#         'Male_Percentage', 'Female_Percentage'
-#     ]
-
-#     # Fill in means/modes for numeric and categorical features
-#     for col in additional_features:
-#         if pd.api.types.is_numeric_dtype(df[col]):
-#             input_df[col] = df[col].mean()  # Fill with mean for numeric columns
-#         else:
-#             input_df[col] = df[col].mode()[0]  # Fill with mode for categorical columns
-
-#     # Initialize OneHotEncoder
-#     ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False)  # Updated argument
-
-#     # Define categorical columns
-#     categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
-
-#     # Apply OneHotEncoder for categorical columns
-#     for col in categorical_cols:
-#         if col in input_df.columns:
-#             ohe.fit(df[[col]])  # Fit on the entire original data to capture all categories
-#             encoded = ohe.transform(input_df[[col]])  # Transform the input data
-            
-#             # Convert the output to a DataFrame for easier concatenation
-#             encoded_df = pd.DataFrame(encoded, columns=ohe.get_feature_names_out([col]))
-            
-#             # Concatenate the new encoded columns with the input_df
-#             input_df = pd.concat([input_df, encoded_df], axis=1)
-#             input_df = input_df.drop(columns=[col])  # Drop the original column
-
-#     # Debugging Step: Check if the encoded columns exist in input_df
-#     st.write(f"Columns after encoding: {input_df.columns.tolist()}")
-
-#     # Optional: reorder columns if model requires specific order
-#     if hasattr(model, 'feature_names_in_'):
-#         missing_columns = [col for col in model.feature_names_in_ if col not in input_df.columns]
-#         if missing_columns:
-#             st.error(f"Missing columns in input_df: {missing_columns}")
-#             st.stop()
-#         input_df = input_df[model.feature_names_in_]
-
-#     # Predict
-#     prediction = model.predict(input_df)[0]
-#     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
 left_col, center_col, right_col = st.columns([1, 2, 1])
