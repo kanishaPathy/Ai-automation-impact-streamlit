@@ -380,7 +380,7 @@ with center_col:
 st.header("🎓 Education Level Impact on Unemployment")
 
 # Interactive dropdown for Education Level selection
-selected_education_level = st.selectbox("Select Education Level", sorted(df["Education_Level"].unique()), key="education_comp")
+selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="education_comp")
 
 # Interactive year range slider for dynamic filtering
 education_year_range = st.slider("Select Year Range", 
@@ -388,7 +388,7 @@ education_year_range = st.slider("Select Year Range",
                                  (2010, 2022), key="education_year_range")
 
 # Filtered dataset based on selected education level and year range
-education_df = df[(df["Education_Level"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
+education_df = df[(df["EducationLevel"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
 
 if education_df.empty:
     st.warning("No data found for selected education level and years.")
