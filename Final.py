@@ -474,7 +474,7 @@ metric = st.selectbox(
 )
 # metric = st.selectbox(
 #     "Select Metric", 
-#     ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"],
+#     ["Revenue", "Growth_Rate"],
 #     key="metric_selectbox"
 # )
 
