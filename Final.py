@@ -489,5 +489,5 @@ col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column be
 with col2:  # Place the gender chart in the center column
     st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
 
-with col2:  # Place the AI-related chart in the center column
-    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
+# with col2:  # Place the AI-related chart in the center column
+#     st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
