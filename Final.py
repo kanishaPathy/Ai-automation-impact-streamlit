@@ -437,25 +437,39 @@ st.altair_chart(bubble, use_container_width=True)
 
 
 # Radar Chart for Sector Score Breakdown
-# Pick a sector to display
+# Dropdown for sector selection
 selected_sector = st.selectbox("Select a Sector", df["Sector"].unique())
-sector_row = df[df["Sector"] == selected_sector].mean()
 
+# Filter by sector
+sector_data = df[df["Sector"] == selected_sector]
+
+# Select only numeric columns for mean
+numeric_columns = [
+    "Avg_Automation_Impact", "Revenue", "Growth_Rate",
+    "AI_Adoption_Rate", "Sector_Impact_Score"
+]
+
+# Calculate mean for the selected numeric metrics
+sector_row = sector_data[numeric_columns].mean()
+
+# Prepare radar chart data
 radar_df = pd.DataFrame({
-    "Metric": ["Automation Impact", "Revenue", "Growth Rate", "AI Adoption Rate", "Sector Impact Score"],
-    "Value": [
-        sector_row["Avg_Automation_Impact"],
-        sector_row["Revenue"],
-        sector_row["Growth_Rate"],
-        sector_row["AI_Adoption_Rate"],
-        sector_row["Sector_Impact_Score"]
-    ]
+    "Metric": sector_row.index,
+    "Value": sector_row.values
 })
 
-fig = px.line_polar(radar_df, r='Value', theta='Metric', line_close=True, 
-                    title=f"Impact Metrics for {selected_sector}", 
-                    height=500)
+# Create radar chart
+fig = px.line_polar(
+    radar_df,
+    r='Value',
+    theta='Metric',
+    line_close=True,
+    title=f"Impact Metrics for {selected_sector}",
+    height=500
+)
 fig.update_traces(fill='toself')
+
+# Show in Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
 
