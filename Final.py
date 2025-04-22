@@ -44,6 +44,13 @@ filtered_df = df[
     (df["EducationLevel"] == education) &
     (df["Year"].between(year_range[0], year_range[1]))
 ]
+# Prepare input data for prediction (using first year in range)
+input_df = pd.DataFrame({
+    '_id.Country': [country],
+    '_id.Sector': [sector],
+    '_id.Year': [year_range[0]],
+    '_id.EducationLevel': [education],
+})
 # Encoding and predictions
 X_train = df.drop(columns=['Avg_Automation_Impact'])
 X_encoded = pd.get_dummies(X_train)
