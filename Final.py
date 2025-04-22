@@ -483,12 +483,27 @@ ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
     title="AI Role Jobs & AI Adoption Rate by Sector"  # Chart title
 ).interactive()  # Enable zooming and panning
 
-# Layout: Center the charts using Streamlit's column layout
-col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+# Ensure charts are rendered properly without duplication
+if 'gender_chart_rendered' not in st.session_state:
+    st.session_state.gender_chart_rendered = False
 
-with col2:  # Place the gender chart in the center column
-    st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
+if not st.session_state.gender_chart_rendered:
+    # Layout: Center the charts using Streamlit's column layout
+    col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+
+    with col2:  # Place the gender chart in the center column
+        st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
+
+    # Set the flag to True to prevent re-rendering of the chart
+    st.session_state.gender_chart_rendered = True
 
 # Create a new column to display the second chart properly without overlap
-with col2:  # Place the AI-related chart in the center column
-    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
+if 'ai_jobs_adoption_chart_rendered' not in st.session_state:
+    st.session_state.ai_jobs_adoption_chart_rendered = False
+
+if not st.session_state.ai_jobs_adoption_chart_rendered:
+    with col2:  # Place the AI-related chart in the center column
+        st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
+
+    # Set the flag to True to prevent re-rendering of the chart
+    st.session_state.ai_jobs_adoption_chart_rendered = True
