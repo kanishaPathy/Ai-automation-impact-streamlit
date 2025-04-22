@@ -95,15 +95,23 @@ if st.button("Predict Future Impact"):
         if pd.api.types.is_numeric_dtype(df[col]):
             input_df[col] = df[col].mean()
         else:
-            input_df[col] = df[col].mode()[0]  # Use most common category
+            input_df[col] = df[col].mode()[0]  # most frequent category
 
+    # Encode base categorical inputs
     for col in ['Country', 'Sector', 'EducationLevel']:
-        input_df[col] = label_encoders[col].transform(input_df[col])
+        if input_df[col][0] in label_encoders[col].classes_:
+            input_df[col] = label_encoders[col].transform(input_df[col])
+        else:
+            st.error(f"'{input_df[col][0]}' is an unseen label for '{col}'. Please choose another option.")
+            st.stop()
 
-    # Encode additional categorical features if needed
+    # Encode additional features if needed
     for col in additional_features:
         if col in label_encoders:
-            input_df[col] = label_encoders[col].transform(input_df[col])
+            if input_df[col][0] in label_encoders[col].classes_:
+                input_df[col] = label_encoders[col].transform(input_df[col])
+            else:
+                input_df[col] = label_encoders[col].transform([label_encoders[col].classes_[0]])[0]  # fallback to first known label
 
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
