@@ -376,31 +376,48 @@ with center_col:
     fig2.update_layout(height=300)
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- Education Level Impact ---
+# --- Education Level Impact with Interactive Features ---
 st.header("🎓 Education Level Impact on Unemployment")
-selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="education_comp")
 
-# Provide a unique key for the slider
+# Interactive dropdown for Education Level selection
+selected_education_level = st.selectbox("Select Education Level", sorted(df["Education_Level"].unique()), key="education_comp")
+
+# Interactive year range slider for dynamic filtering
 education_year_range = st.slider("Select Year Range", 
                                  int(df["Year"].min()), int(df["Year"].max()), 
                                  (2010, 2022), key="education_year_range")
 
-education_df = df[(df["EducationLevel"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
+# Filtered dataset based on selected education level and year range
+education_df = df[(df["Education_Level"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
 
 if education_df.empty:
     st.warning("No data found for selected education level and years.")
 else:
-    # Prepare the data for grouped bar
+    # Prepare the data for interactive plotting
     plot_df = education_df.melt(id_vars="Year", value_vars=["Avg_PreAI", "Avg_PostAI"], 
                                 var_name="Phase", value_name="Unemployment Rate")
 
+    # Display the dataset in an interactive table
+    if st.checkbox("Show Data Table"):
+        st.write(education_df)
+
+    # Title for the chart
     st.subheader(f"Unemployment for {selected_education_level} Education Level from {education_year_range[0]} to {education_year_range[1]}")
+    
+    # Create columns for layout
     left_col, center_col, right_col = st.columns([1, 2, 1])
     with center_col:
+        # Interactive Plotly Line Chart
         fig = px.line(plot_df, x="Year", y="Unemployment Rate", color="Phase", markers=True,
                       title=f"{selected_education_level} Education Level: Pre-AI vs Post-AI Unemployment ({education_year_range[0]} - {education_year_range[1]})",
                       labels={"Unemployment Rate": "Unemployment Rate", "Year": "Year", "Phase": "Impact Phase"},
-                     )
+                      hover_name="Year", hover_data=["Unemployment Rate", "Phase"],
+                      height=500)
+
+        # Add hover interaction to show additional details
+        fig.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(size=7, symbol="circle"))
+        
+        # Customize chart layout for better interaction
         fig.update_layout(
             xaxis=dict(dtick=1),
             legend_title="Impact Phase",
@@ -410,9 +427,14 @@ else:
                 'xanchor': 'center',  # Ensures the title stays centered
                 'font': dict(size=18)
             },
-            # Resize the figure
-            autosize=True,
-            width=800,  # Set width of the figure (pixels)
-            height=500  # Set height of the figure (pixels)
+            hovermode="x unified",  # Makes the hover tooltips appear for all lines
+            template="plotly_dark"  # Optional, for dark theme
         )
+
+    # Display the Plotly chart with interactive features
     st.plotly_chart(fig, use_container_width=True)
+
+    # Option to download the chart data as a CSV
+    if st.button("Download Chart Data as CSV"):
+        csv = plot_df.to_csv(index=False)
+        st.download_button(label="Download CSV", data=csv, file_name="education_level_unemployment_data.csv", mime="text/csv")
