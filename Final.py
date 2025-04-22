@@ -376,4 +376,38 @@ with center_col:
     fig2.update_layout(height=300)
     st.plotly_chart(fig2, use_container_width=True)
 
+# --- Education Level Impact ---
+st.header("🎓 Education Level Impact on Unemployment")
+selected_education_level = st.selectbox("Select Education Level", sorted(df["Education_Level"].unique()), key="education_comp")
+education_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
+education_df = df[(df["Education_Level"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
 
+if education_df.empty:
+    st.warning("No data found for selected education level and years.")
+else:
+    # Prepare the data for grouped bar
+    plot_df = education_df.melt(id_vars="Year", value_vars=["Avg_PreAI", "Avg_PostAI"], 
+                                var_name="Phase", value_name="Unemployment Rate")
+
+    st.subheader(f"Unemployment for {selected_education_level} Education Level from {education_year_range[0]} to {education_year_range[1]}")
+    left_col, center_col, right_col = st.columns([1, 2, 1])
+    with center_col:
+        fig = px.line(plot_df, x="Year", y="Unemployment Rate", color="Phase", markers=True,
+                      title=f"{selected_education_level} Education Level: Pre-AI vs Post-AI Unemployment ({education_year_range[0]} - {education_year_range[1]})",
+                      labels={"Unemployment Rate": "Unemployment Rate", "Year": "Year", "Phase": "Impact Phase"},
+                     )
+        fig.update_layout(
+            xaxis=dict(dtick=1),
+            legend_title="Impact Phase",
+            title={
+                'text': f"{selected_education_level} Education Level: Pre-AI vs Post-AI Unemployment ({education_year_range[0]} - {education_year_range[1]})",
+                'x': 0.5,  # Centers the title
+                'xanchor': 'center',  # Ensures the title stays centered
+                'font': dict(size=18)
+            },
+            # Resize the figure
+            autosize=True,
+            width=800,  # Set width of the figure (pixels)
+            height=500  # Set height of the figure (pixels)
+        )
+    st.plotly_chart(fig, use_container_width=True)
