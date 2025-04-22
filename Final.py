@@ -91,12 +91,12 @@ if st.button("Predict Future Impact"):
         'Male_Percentage', 'Female_Percentage'
     ]
 
-    # Fill in means/modes
+    # Fill in means/modes for numeric and categorical features
     for col in additional_features:
         if pd.api.types.is_numeric_dtype(df[col]):
-            input_df[col] = df[col].mean()
+            input_df[col] = df[col].mean()  # Fill with mean for numeric columns
         else:
-            input_df[col] = df[col].mode()[0]
+            input_df[col] = df[col].mode()[0]  # Fill with mode for categorical columns
 
     # Handle unseen categorical labels
     categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
@@ -104,10 +104,14 @@ if st.button("Predict Future Impact"):
         if col in input_df.columns and col in label_encoders:
             value = input_df[col][0]
             if value in label_encoders[col].classes_:
+                # Value is seen, transform normally
                 input_df[col] = label_encoders[col].transform([value])
             else:
+                # Handle unseen labels by transforming them as a default category
                 st.warning(f"'{value}' is an unseen label for '{col}'. Replacing with 'Unknown'.")
-                input_df[col] = label_encoders[col].transform(['Unknown'])  # Replace with 'Unknown'
+                # Add 'Unknown' as a possible category in the encoder before transforming
+                label_encoders[col].classes_ = list(label_encoders[col].classes_) + ['Unknown']
+                input_df[col] = label_encoders[col].transform(['Unknown'])  # Transform to 'Unknown'
 
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
@@ -117,7 +121,6 @@ if st.button("Predict Future Impact"):
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
 
-    
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
 left_col, center_col, right_col = st.columns([1, 2, 1])
