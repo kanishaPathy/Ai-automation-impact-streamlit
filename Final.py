@@ -436,45 +436,11 @@ bubble = alt.Chart(df).mark_circle().encode(
 st.altair_chart(bubble, use_container_width=True)
 
 
-# Radar Chart for Sector Score Breakdown
-
-# Dropdown for sector selection
-selected_sector = st.selectbox("Select a Sector", df["Sector"].unique())
-
-# Filter data for selected sector
-sector_data = df[df["Sector"] == selected_sector]
-
-# Specify desired columns
-numeric_columns = [
-    "Avg_Automation_Impact", "Revenue", "Growth_Rate",
-    "AI_Adoption_Rate", "Sector_Impact_Score"
-]
-
-# Ensure numeric conversion (errors='coerce' will turn invalid values to NaN)
-sector_data_clean = sector_data[numeric_columns].apply(pd.to_numeric, errors='coerce')
-
-# Compute mean for radar chart
-sector_row = sector_data_clean.mean()
-
-# Prepare DataFrame for radar chart
-radar_df = pd.DataFrame({
-    "Metric": sector_row.index,
-    "Value": sector_row.values
-})
-
-# Create radar chart
-fig = px.line_polar(
-    radar_df,
-    r='Value',
-    theta='Metric',
-    line_close=True,
-    title=f"Impact Metrics for {selected_sector}",
-    height=500
-)
-fig.update_traces(fill='toself')
-
-# Display chart
-st.plotly_chart(fig, use_container_width=True)
-
-
-
+# Avg Automation Impact by Sector
+bar_chart = alt.Chart(df).mark_bar().encode(
+    x=alt.X("Sector:N", sort='-y'),
+    y="Avg_Automation_Impact:Q",
+    color="Sector:N",
+    tooltip=["Sector", "Avg_Automation_Impact"]
+).properties(title="Automation Impact by Sector").interactive()
+st.altair_chart(bar_chart, use_container_width=True)
