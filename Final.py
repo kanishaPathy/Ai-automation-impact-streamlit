@@ -118,13 +118,21 @@ if st.button("Predict Future Impact"):
             input_df = pd.concat([input_df, encoded_df], axis=1)
             input_df = input_df.drop(columns=[col])  # Drop the original column
 
+    # Debugging Step: Check if the encoded columns exist in input_df
+    st.write(f"Columns after encoding: {input_df.columns.tolist()}")
+
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
+        missing_columns = [col for col in model.feature_names_in_ if col not in input_df.columns]
+        if missing_columns:
+            st.error(f"Missing columns in input_df: {missing_columns}")
+            st.stop()
         input_df = input_df[model.feature_names_in_]
 
     # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+
 
 
 #Reskilling
