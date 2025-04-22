@@ -81,6 +81,7 @@ if st.button("Predict Future Impact"):
         'Year': [year_range[0]],
         'EducationLevel': [education]
     })
+
     additional_features = [
         'Avg_PreAI', 'Avg_PostAI', 'Avg_Automation_Impact', 'Avg_AI_Role_Jobs',
         'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Skill_Level', 'Skills_Gap',
@@ -89,12 +90,24 @@ if st.button("Predict Future Impact"):
         'Sector_Impact_Score', 'Tech_Investment', 'Sector_Growth_Decline',
         'Male_Percentage', 'Female_Percentage'
     ]
+
     for col in additional_features:
-        input_df[col] = df[col].mean()
+        if pd.api.types.is_numeric_dtype(df[col]):
+            input_df[col] = df[col].mean()
+        else:
+            input_df[col] = df[col].mode()[0]  # Use most common category
+
     for col in ['Country', 'Sector', 'EducationLevel']:
         input_df[col] = label_encoders[col].transform(input_df[col])
+
+    # Encode additional categorical features if needed
+    for col in additional_features:
+        if col in label_encoders:
+            input_df[col] = label_encoders[col].transform(input_df[col])
+
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+
     
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
