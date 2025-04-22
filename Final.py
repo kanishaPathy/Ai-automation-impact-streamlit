@@ -446,16 +446,6 @@ else:
             st.write(filtered_df)
 
 
-# Assuming df is already loaded as per your dataset
-# df = pd.read_csv("your_data.csv")  # Replace with your actual data loading line
-
-# Reshape the DataFrame to long format for gender distribution
-gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
-    id_vars=["Country", "Sector"],
-    var_name="Gender",
-    value_name="Percentage"
-)
-
 # Gender Distribution Chart
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
     x=alt.X("Sector:N", title="Sector"),  # Set axis title
@@ -484,12 +474,13 @@ ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
     title="AI Role Jobs & AI Adoption Rate by Sector"  # Chart title
 ).interactive()  # Enable zooming and panning
 
-# Layout: Center the charts using Streamlit's column layout
-col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with the center column being larger
+# Layout: Proper column layout to prevent chart overlap
+col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
 
-with col2:  # Place the gender chart in the center column
-    st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
+# Display Gender Distribution Chart in the center column
+with col2:
+    st.altair_chart(gender_chart, use_container_width=True)
 
-# Place the second chart in the same layout, below the first chart
-with col2:  # Place the AI-related chart in the center column
+# Display AI Role Jobs & AI Adoption Rate Chart in the center column
+with col2:
     st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)
