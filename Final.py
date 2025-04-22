@@ -532,6 +532,6 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
 col1, col2, col3 = st.columns([1, 2, 1])  # Adjust the column weights to control space
 with col2:  # Centering the chart in the middle column
     # Add the image (replace 'your_image_path.jpg' with the path to your image)
-    st.image("your_image_path.jpg", width=200)  # Adjust 'width' to make it small
+    st.image("your_image_path.jpg", width=100)  # Adjust 'width' to make it small
     # Display the gender distribution chart
     st.altair_chart(gender_chart, use_container_width=True)  # This will center the chart in the column
