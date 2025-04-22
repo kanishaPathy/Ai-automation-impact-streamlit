@@ -5,6 +5,7 @@ import seaborn as sns
 import joblib
 import xgboost as xgb
 import plotly.express as px
+from sklearn.preprocessing import OneHotEncoder
 
 # Load model and encoders
 model = joblib.load("xgboost_model.pkl")
@@ -98,20 +99,24 @@ if st.button("Predict Future Impact"):
         else:
             input_df[col] = df[col].mode()[0]  # Fill with mode for categorical columns
 
-    # Handle unseen categorical labels
+    # Initialize OneHotEncoder
+    ohe = OneHotEncoder(handle_unknown='ignore', sparse=False)
+
+    # Define categorical columns
     categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
+
+    # Apply OneHotEncoder for categorical columns
     for col in categorical_cols:
-        if col in input_df.columns and col in label_encoders:
-            value = input_df[col][0]
-            if value in label_encoders[col].classes_:
-                # Value is seen, transform normally
-                input_df[col] = label_encoders[col].transform([value])
-            else:
-                # Handle unseen labels by assigning a default encoded value
-                st.warning(f"'{value}' is an unseen label for '{col}'. Replacing with 'Unknown'.")
-                # Assign a default value if unseen, instead of trying to transform 'Unknown' using the encoder
-                input_df[col] = label_encoders[col].transform([label_encoders[col].classes_[0]])  # Assign the first class (or any valid class)
-                input_df[col] = input_df[col].replace(0, label_encoders[col].transform(['Unknown'])[0])  # Map the value to 'Unknown'
+        if col in input_df.columns:
+            ohe.fit(df[[col]])  # Fit on the entire original data to capture all categories
+            encoded = ohe.transform(input_df[[col]])  # Transform the input data
+            
+            # Convert the output to a DataFrame for easier concatenation
+            encoded_df = pd.DataFrame(encoded, columns=ohe.get_feature_names_out([col]))
+            
+            # Concatenate the new encoded columns with the input_df
+            input_df = pd.concat([input_df, encoded_df], axis=1)
+            input_df = input_df.drop(columns=[col])  # Drop the original column
 
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
@@ -120,7 +125,6 @@ if st.button("Predict Future Impact"):
     # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-
 
 
 #Reskilling
