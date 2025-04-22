@@ -5,6 +5,7 @@ import seaborn as sns
 import joblib
 import xgboost as xgb
 import plotly.express as px
+import altair as alt
 from sklearn.preprocessing import OneHotEncoder
 
 # Load model and encoders
@@ -376,74 +377,51 @@ with center_col:
     fig2.update_layout(height=300)
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- Education Level Impact with Enhanced Interactivity ---
-st.header("🎓 Education Level Impact on Unemployment")
 
-# User selection widgets
-selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="education_comp")
+# --- Education Level Impact with Altair Chart ---
+st.header("🎓 Education Level Impact on Unemployment (Altair)")
 
-selected_countries = st.multiselect("Select Countries", sorted(df["Country"].unique()), default=sorted(df["Country"].unique()), key="education_country")
-
+# Selection widgets
+selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="altair_education")
+selected_countries = st.multiselect("Select Countries", sorted(df["Country"].unique()), default=sorted(df["Country"].unique()), key="altair_country")
 education_year_range = st.slider("Select Year Range", 
                                  int(df["Year"].min()), int(df["Year"].max()), 
-                                 (2010, 2022), key="education_year_range")
+                                 (2010, 2022), key="altair_year_range")
 
-# Filter the data based on selections
-education_df = df[
+# Filter data
+edu_df = df[
     (df["EducationLevel"] == selected_education_level) &
     (df["Country"].isin(selected_countries)) &
     (df["Year"].between(education_year_range[0], education_year_range[1]))
 ]
 
-if education_df.empty:
-    st.warning("No data found for selected education level, countries, and year range.")
+if edu_df.empty:
+    st.warning("No data found for the selected filters.")
 else:
-    # Melt data for plotting
-    plot_df = education_df.melt(id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"],
-                                var_name="Phase", value_name="Unemployment Rate")
+    # Melt data for Altair
+    alt_df = edu_df.melt(id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"],
+                         var_name="Phase", value_name="Unemployment Rate")
 
-    # Option to show raw data table
-    if st.checkbox("📊 Show Filtered Data Table"):
-        st.dataframe(education_df)
+    st.subheader(f"📊 Altair Chart for {selected_education_level} ({education_year_range[0]} – {education_year_range[1]})")
 
-    # Chart type selection
-    chart_type = st.radio("Select Chart Type", ["📈 Line Chart", "📊 Bar Chart"], horizontal=True, key="chart_type_toggle")
+    # Altair chart setup
+    alt_chart = alt.Chart(alt_df).mark_line(point=True).encode(
+        x=alt.X("Year:O", title="Year"),
+        y=alt.Y("Unemployment Rate:Q", title="Unemployment Rate"),
+        color=alt.Color("Phase:N", title="Impact Phase"),
+        tooltip=["Year", "Country", "Phase", "Unemployment Rate"]
+    ).properties(
+        width=700,
+        height=400,
+        title=f"{selected_education_level}: Pre-AI vs Post-AI Unemployment"
+    ).interactive()
 
-    # Plotting the selected chart
-    st.subheader(f"Unemployment for {selected_education_level} Education Level ({education_year_range[0]}–{education_year_range[1]})")
+    st.altair_chart(alt_chart, use_container_width=True)
 
-    if chart_type == "📈 Line Chart":
-        fig = px.line(plot_df, x="Year", y="Unemployment Rate", color="Phase", line_group="Country",
-                      markers=True, hover_name="Country", template="plotly_white")
-    else:
-        fig = px.bar(plot_df, x="Year", y="Unemployment Rate", color="Phase", barmode="group",
-                     facet_col="Country" if len(selected_countries) > 1 else None, template="plotly_white")
+    # Optional data view and download
+    if st.checkbox("📋 Show Data Table"):
+        st.dataframe(alt_df)
 
-    fig.update_layout(
-        xaxis=dict(dtick=1),
-        title={
-            'text': f"{selected_education_level} Education Level - Unemployment Impact ({education_year_range[0]}–{education_year_range[1]})",
-            'x': 0.5, 'xanchor': 'center', 'font': dict(size=18)
-        },
-        hovermode="x unified"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    csv = alt_df.to_csv(index=False)
+    st.download_button(label="⬇️ Download CSV", data=csv, file_name="education_unemployment_altair.csv", mime="text/csv")
 
-    # Download chart data
-    csv = plot_df.to_csv(index=False)
-    st.download_button(label="📥 Download Chart Data as CSV", data=csv, file_name="education_level_unemployment.csv", mime="text/csv")
-
-    # Optional: Compare all education levels
-    if st.checkbox("🔄 Compare All Education Levels"):
-        comp_df = df[
-            (df["Country"].isin(selected_countries)) &
-            (df["Year"].between(education_year_range[0], education_year_range[1]))
-        ]
-        comp_melted = comp_df.melt(id_vars=["Year", "EducationLevel"], value_vars=["Avg_PreAI", "Avg_PostAI"],
-                                   var_name="Phase", value_name="Unemployment Rate")
-
-        fig_all = px.line(comp_melted, x="Year", y="Unemployment Rate", color="EducationLevel",
-                          line_dash="Phase", markers=True, template="plotly_white",
-                          title="📚 Comparison of Education Levels: Pre-AI vs Post-AI Unemployment")
-        fig_all.update_layout(xaxis=dict(dtick=1), hovermode="x unified")
-        st.plotly_chart(fig_all, use_container_width=True)
