@@ -447,11 +447,32 @@ st.altair_chart(bar_chart, use_container_width=True)
 
 # Chart display
 
-# Sidebar Selectboxes for user input
-selected_sector = st.sidebar.selectbox("Select Sector", sorted(df['Sector'].dropna().unique()))
-selected_country = st.sidebar.selectbox("Select Country", sorted(df['Country'].dropna().unique()))
-selected_edu = st.sidebar.selectbox("Select Education Level", sorted(df['EducationLevel'].dropna().unique()))
-metric = st.sidebar.selectbox("Select Metric", ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"])
+import streamlit as st
+
+# Sidebar Selectboxes for user input with unique keys
+selected_sector = st.sidebar.selectbox(
+    "Select Sector", 
+    sorted(df['Sector'].dropna().unique()), 
+    key="sector_selectbox"
+)
+
+selected_country = st.sidebar.selectbox(
+    "Select Country", 
+    sorted(df['Country'].dropna().unique()), 
+    key="country_selectbox"
+)
+
+selected_edu = st.sidebar.selectbox(
+    "Select Education Level", 
+    sorted(df['EducationLevel'].dropna().unique()), 
+    key="edu_selectbox"
+)
+
+metric = st.sidebar.selectbox(
+    "Select Metric", 
+    ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"],
+    key="metric_selectbox"
+)
 
 # Ensure all dropdowns have valid selections
 if not all([selected_sector, selected_country, selected_edu, metric]):
