@@ -44,6 +44,15 @@ filtered_df = df[
     (df["EducationLevel"] == education) &
     (df["Year"].between(year_range[0], year_range[1]))
 ]
+# Encoding and predictions
+X_train = df.drop(columns=['Avg_Automation_Impact'])
+X_encoded = pd.get_dummies(X_train)
+input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
+
+with st.spinner("Predicting Automation Impact..."):
+    prediction = model.predict(input_encoded)[0]
+
+st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
 
 # --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
