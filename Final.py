@@ -446,37 +446,42 @@ bar_chart = alt.Chart(df).mark_bar().encode(
 st.altair_chart(bar_chart, use_container_width=True)
 
 # Chart display
-st.subheader(f"{chart_type} Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
+# Sidebar Selectboxes for user input
+chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar", "Line", "Radar", "Heatmap"])
+selected_sector = st.sidebar.selectbox("Select Sector", sorted(df['Sector'].dropna().unique()))
+selected_country = st.sidebar.selectbox("Select Country", sorted(df['Country'].dropna().unique()))
+selected_edu = st.sidebar.selectbox("Select Education Level", sorted(df['EducationLevel'].dropna().unique()))
+metric = st.sidebar.selectbox("Select Metric", ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"])
 
-if filtered_df.empty:
-    st.warning("No data available for the selected filters.")
+# Ensure all dropdowns have valid selections
+if not all([chart_type, selected_sector, selected_country, selected_edu, metric]):
+    st.warning("Please make selections for all dropdowns to display the chart.")
 else:
-    if chart_type == "Bar":
-        fig = px.bar(filtered_df, x="Year", y=metric, color="Year", title=metric)
-        st.plotly_chart(fig, use_container_width=True)
+    # Display chart header
+    st.subheader(f"{chart_type} Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
+    
+    # Filter the DataFrame based on the user's selection
+    filtered_df = df[(df['Sector'] == selected_sector) & 
+                     (df['Country'] == selected_country) & 
+                     (df['EducationLevel'] == selected_edu)]
 
-    elif chart_type == "Line":
-        fig = px.line(filtered_df, x="Year", y=metric, markers=True, title=metric)
-        st.plotly_chart(fig, use_container_width=True)
+    if filtered_df.empty:
+        st.warning("No data available for the selected filters.")
+    else:
+        # Choose the type of chart based on the dropdown selection
+        if chart_type == "Bar":
+            # Create Bar Chart
+            st.bar_chart(filtered_df[metric])
+        elif chart_type == "Line":
+            # Create Line Chart
+            st.line_chart(filtered_df[metric])
+        elif chart_type == "Radar":
+            # Radar chart logic here (example: using Plotly or other libraries)
+            st.write("Radar Chart Placeholder")
+        elif chart_type == "Heatmap":
+            # Heatmap logic here (example: using Seaborn or Plotly)
+            st.write("Heatmap Placeholder")
 
-    elif chart_type == "Radar":
-        import plotly.graph_objects as go
-        # Pick some relevant metrics to show in radar
-        radar_metrics = [
-            "Revenue", "Growth_Rate", "Automation_Impact_Level", "AI_Adoption_Rate", "Tech_Investment"
-        ]
-        radar_data = filtered_df[radar_metrics].mean().reset_index()
-        fig = go.Figure(data=go.Scatterpolar(
-            r=radar_data[0],
-            theta=radar_data['index'],
-            fill='toself',
-            name=f"{selected_sector}"
-        ))
-        fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True)
-        st.plotly_chart(fig, use_container_width=True)
-
-    elif chart_type == "Heatmap":
-        heatmap_data = filtered_df.pivot_table(index="Year", columns="EducationLevel", values=metric)
-        fig, ax = plt.subplots()
-        sns.heatmap(heatmap_data, annot=True, fmt=".1f", cmap="YlGnBu", ax=ax)
-        st.pyplot(fig)
+        # Optionally display the filtered dataframe if needed
+        if st.checkbox("Show Filtered Data"):
+            st.write(filtered_df)
