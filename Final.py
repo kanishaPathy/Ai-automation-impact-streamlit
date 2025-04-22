@@ -512,7 +512,6 @@ else:
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
             
-# Assuming df is your original DataFrame with gender-related data
 # Gender Distribution
 gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
     id_vars=["Country", "Sector"],
@@ -529,5 +528,11 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
     tooltip=["Country", "Sector", "Gender", "Percentage"]
 ).properties(title="Gender Distribution by Sector").interactive()
 
-gender_chart
+# Center the chart using Streamlit's layout functions
+st.markdown("<h3 style='text-align: center;'>Gender Distribution by Sector</h3>", unsafe_allow_html=True)  # Title centered
+st.write(gender_chart)  # This will center the chart automatically in Streamlit
 
+# You can also use st.columns to control layout
+col1, col2, col3 = st.columns([1, 2, 1])  # Adjust the column weights to control space
+with col2:  # Centering the chart in the middle column
+    st.altair_chart(gender_chart, use_container_width=True)
