@@ -446,7 +446,7 @@ bar_chart = alt.Chart(df).mark_bar().encode(
 st.altair_chart(bar_chart, use_container_width=True)
 
 # Chart display
-
+st.title("Growth Rate / Revenue Analysis")
 
 # Main page widgets for user input
 selected_sector = st.selectbox(
@@ -461,17 +461,22 @@ selected_country = st.selectbox(
     key="country_selectbox"
 )
 
-selected_edu = st.selectbox(
-    "Select Education Level", 
-    sorted(df['EducationLevel'].dropna().unique()), 
-    key="edu_selectbox"
-)
+# selected_edu = st.selectbox(
+#     "Select Education Level", 
+#     sorted(df['EducationLevel'].dropna().unique()), 
+#     key="edu_selectbox"
+# )
 
 metric = st.selectbox(
     "Select Metric", 
-    ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"],
+    ["Revenue", "Growth_Rate"],
     key="metric_selectbox"
 )
+# metric = st.selectbox(
+#     "Select Metric", 
+#     ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"],
+#     key="metric_selectbox"
+# )
 
 # Ensure all dropdowns have valid selections
 if not all([selected_sector, selected_country, selected_edu, metric]):
