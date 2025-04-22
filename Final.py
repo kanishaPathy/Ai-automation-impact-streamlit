@@ -100,7 +100,7 @@ if st.button("Predict Future Impact"):
             input_df[col] = df[col].mode()[0]  # Fill with mode for categorical columns
 
     # Initialize OneHotEncoder
-    ohe = OneHotEncoder(handle_unknown='ignore', sparse=False)
+    ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False)  # Updated argument
 
     # Define categorical columns
     categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
