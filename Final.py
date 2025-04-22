@@ -446,19 +446,19 @@ bar_chart = alt.Chart(df).mark_bar().encode(
 st.altair_chart(bar_chart, use_container_width=True)
 
 # Chart display
+
 # Sidebar Selectboxes for user input
-chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar", "Line", "Radar", "Heatmap"])
 selected_sector = st.sidebar.selectbox("Select Sector", sorted(df['Sector'].dropna().unique()))
 selected_country = st.sidebar.selectbox("Select Country", sorted(df['Country'].dropna().unique()))
 selected_edu = st.sidebar.selectbox("Select Education Level", sorted(df['EducationLevel'].dropna().unique()))
 metric = st.sidebar.selectbox("Select Metric", ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"])
 
 # Ensure all dropdowns have valid selections
-if not all([chart_type, selected_sector, selected_country, selected_edu, metric]):
+if not all([selected_sector, selected_country, selected_edu, metric]):
     st.warning("Please make selections for all dropdowns to display the chart.")
 else:
     # Display chart header
-    st.subheader(f"{chart_type} Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
+    st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
     
     # Filter the DataFrame based on the user's selection
     filtered_df = df[(df['Sector'] == selected_sector) & 
@@ -468,19 +468,8 @@ else:
     if filtered_df.empty:
         st.warning("No data available for the selected filters.")
     else:
-        # Choose the type of chart based on the dropdown selection
-        if chart_type == "Bar":
-            # Create Bar Chart
-            st.bar_chart(filtered_df[metric])
-        elif chart_type == "Line":
-            # Create Line Chart
-            st.line_chart(filtered_df[metric])
-        elif chart_type == "Radar":
-            # Radar chart logic here (example: using Plotly or other libraries)
-            st.write("Radar Chart Placeholder")
-        elif chart_type == "Heatmap":
-            # Heatmap logic here (example: using Seaborn or Plotly)
-            st.write("Heatmap Placeholder")
+        # Create Bar Chart for the selected metric
+        st.bar_chart(filtered_df[metric])
 
         # Optionally display the filtered dataframe if needed
         if st.checkbox("Show Filtered Data"):
