@@ -9,7 +9,7 @@ import altair as alt
 from sklearn.preprocessing import OneHotEncoder
 
 # Load model and encoders
-model = joblib.load("xgboost_model.pkl")
+model = joblib.load("xgb_model_final.pkl")
 label_encoders = joblib.load("label_encoders1.pkl")
 
 # Load new dataset
