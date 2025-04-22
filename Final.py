@@ -189,13 +189,18 @@ with center_col:
     ax5.tick_params(axis='x', rotation=45)
     st.pyplot(fig5)
 
+# Assuming 'filtered_df' is your dataframe and contains the data
+# --- Sector Growth ---
 st.subheader("Sector Growth/Decline Over Time")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 
 with center_col:
     fig6, ax6 = plt.subplots(figsize=(6, 3))
-    
-    # Create a barplot with the 'Year' on the x-axis and 'Sector_Growth_Decline' on the y-axis
+
+    # Ensure the 'Year' column is treated as categorical
+    filtered_df['Year'] = filtered_df['Year'].astype(str)
+
+    # Create a barplot with 'Year' as categorical on the x-axis
     sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
     
     # Ensure x-ticks correspond to the unique years in your dataset
