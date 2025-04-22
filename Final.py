@@ -342,7 +342,7 @@ fig.update_layout(
     title_x=0.5,  # 👉 This centers the title
     title_font=dict(size=18)
 )
-
+fig.update_layout(height=300)
 st.plotly_chart(fig, use_container_width=True)
 
 
