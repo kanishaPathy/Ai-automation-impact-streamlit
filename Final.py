@@ -189,22 +189,25 @@ with center_col:
     ax5.tick_params(axis='x', rotation=45)
     st.pyplot(fig5)
 
-# --- Sector Growth ---
 st.subheader("Sector Growth/Decline Over Time")
 left_col, center_col, right_col = st.columns([1, 2, 1])
+
 with center_col:
     fig6, ax6 = plt.subplots(figsize=(6, 3))
+    
+    # Create a barplot with the 'Year' on the x-axis and 'Sector_Growth_Decline' on the y-axis
     sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
     
-    # Rotate year labels and ensure proper spacing
-    ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45, ha="right")
-    
-    # Optionally, set x-axis ticks manually if needed
+    # Ensure x-ticks correspond to the unique years in your dataset
     ax6.set_xticks(filtered_df["Year"].unique())
     
-    # Adjust layout to prevent overlap
+    # Rotate year labels and adjust their alignment for better readability
+    ax6.set_xticklabels(filtered_df["Year"].unique(), rotation=45, ha="right")
+    
+    # Optionally, adjust layout to prevent overlap
     fig6.tight_layout()
     
+    # Display the plot in Streamlit
     st.pyplot(fig6)
     
 # --- Automation Level ---
@@ -503,19 +506,23 @@ else:
         # Optionally display the filtered dataframe if needed
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
-#Gender Distribution
+            
+# Assuming df is your original DataFrame with gender-related data
+# Gender Distribution
 gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
     id_vars=["Country", "Sector"],
     var_name="Gender",
     value_name="Percentage"
 )
 
+# Define the color scale for Male and Female
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
     x="Sector:N",
     y="Percentage:Q",
-    color="Gender:N",
+    color=alt.Color("Gender:N", scale=alt.Scale(domain=["Male_Percentage", "Female_Percentage"], range=["#1f77b4", "#ff7f0e"])),  # Custom colors for Male and Female
     column="Country:N",
     tooltip=["Country", "Sector", "Gender", "Percentage"]
 ).properties(title="Gender Distribution by Sector").interactive()
-st.altair_chart(gender_chart, use_container_width=True)
+
+gender_chart
 
