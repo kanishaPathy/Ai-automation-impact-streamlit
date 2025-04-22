@@ -45,23 +45,29 @@ filtered_df = df[
     (df["Year"].between(year_range[0], year_range[1]))
 ]
 
-# Prepare input data for prediction (using first year in range)
+# Prepare input data for prediction (using the entire selected year range)
 input_df = pd.DataFrame({
-    '_id.Country': [country],
-    '_id.Sector': [sector],
-    '_id.Year': [year_range[0]],
-    '_id.EducationLevel': [education],
+    '_id.Country': [country] * (year_range[1] - year_range[0] + 1),
+    '_id.Sector': [sector] * (year_range[1] - year_range[0] + 1),
+    '_id.Year': list(range(year_range[0], year_range[1] + 1)),
+    '_id.EducationLevel': [education] * (year_range[1] - year_range[0] + 1),
 })
 
 # Encoding and predictions
 X_train = df.drop(columns=['Avg_Automation_Impact'])
 X_encoded = pd.get_dummies(X_train)
+
+# Ensure columns match for prediction
 input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
+# Predict for each year in the range and display the results
 with st.spinner("Predicting Automation Impact..."):
-    prediction = model.predict(input_encoded)[0]
-
-st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
+    try:
+        predictions = model.predict(input_encoded)
+        for year, prediction in zip(range(year_range[0], year_range[1] + 1), predictions):
+            st.success(f"🔮 Predicted Automation Impact Score for {year}: **{prediction:.2f}**")
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {e}")
 # --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
 
