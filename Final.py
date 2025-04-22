@@ -376,65 +376,74 @@ with center_col:
     fig2.update_layout(height=300)
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- Education Level Impact with Interactive Features ---
+# --- Education Level Impact with Enhanced Interactivity ---
 st.header("🎓 Education Level Impact on Unemployment")
 
-# Interactive dropdown for Education Level selection
+# User selection widgets
 selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="education_comp")
 
-# Interactive year range slider for dynamic filtering
+selected_countries = st.multiselect("Select Countries", sorted(df["Country"].unique()), default=sorted(df["Country"].unique()), key="education_country")
+
 education_year_range = st.slider("Select Year Range", 
                                  int(df["Year"].min()), int(df["Year"].max()), 
                                  (2010, 2022), key="education_year_range")
 
-# Filtered dataset based on selected education level and year range
-education_df = df[(df["EducationLevel"] == selected_education_level) & (df["Year"].between(education_year_range[0], education_year_range[1]))]
+# Filter the data based on selections
+education_df = df[
+    (df["EducationLevel"] == selected_education_level) &
+    (df["Country"].isin(selected_countries)) &
+    (df["Year"].between(education_year_range[0], education_year_range[1]))
+]
 
 if education_df.empty:
-    st.warning("No data found for selected education level and years.")
+    st.warning("No data found for selected education level, countries, and year range.")
 else:
-    # Prepare the data for interactive plotting
-    plot_df = education_df.melt(id_vars="Year", value_vars=["Avg_PreAI", "Avg_PostAI"], 
+    # Melt data for plotting
+    plot_df = education_df.melt(id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"],
                                 var_name="Phase", value_name="Unemployment Rate")
 
-    # Display the dataset in an interactive table
-    if st.checkbox("Show Data Table"):
-        st.write(education_df)
+    # Option to show raw data table
+    if st.checkbox("📊 Show Filtered Data Table"):
+        st.dataframe(education_df)
 
-    # Title for the chart
-    st.subheader(f"Unemployment for {selected_education_level} Education Level from {education_year_range[0]} to {education_year_range[1]}")
-    
-    # Create columns for layout
-    left_col, center_col, right_col = st.columns([1, 2, 1])
-    with center_col:
-        # Interactive Plotly Line Chart
-        fig = px.line(plot_df, x="Year", y="Unemployment Rate", color="Phase", markers=True,
-                      title=f"{selected_education_level} Education Level: Pre-AI vs Post-AI Unemployment ({education_year_range[0]} - {education_year_range[1]})",
-                      labels={"Unemployment Rate": "Unemployment Rate", "Year": "Year", "Phase": "Impact Phase"},
-                      hover_name="Year", hover_data=["Unemployment Rate", "Phase"],
-                      height=500)
+    # Chart type selection
+    chart_type = st.radio("Select Chart Type", ["📈 Line Chart", "📊 Bar Chart"], horizontal=True, key="chart_type_toggle")
 
-        # Add hover interaction to show additional details
-        fig.update_traces(mode="lines+markers", line=dict(width=2), marker=dict(size=7, symbol="circle"))
-        
-        # Customize chart layout for better interaction
-        fig.update_layout(
-            xaxis=dict(dtick=1),
-            legend_title="Impact Phase",
-            title={
-                'text': f"{selected_education_level} Education Level: Pre-AI vs Post-AI Unemployment ({education_year_range[0]} - {education_year_range[1]})",
-                'x': 0.5,  # Centers the title
-                'xanchor': 'center',  # Ensures the title stays centered
-                'font': dict(size=18)
-            },
-            hovermode="x unified",  # Makes the hover tooltips appear for all lines
-            template="plotly_dark"  # Optional, for dark theme
-        )
+    # Plotting the selected chart
+    st.subheader(f"Unemployment for {selected_education_level} Education Level ({education_year_range[0]}–{education_year_range[1]})")
 
-    # Display the Plotly chart with interactive features
+    if chart_type == "📈 Line Chart":
+        fig = px.line(plot_df, x="Year", y="Unemployment Rate", color="Phase", line_group="Country",
+                      markers=True, hover_name="Country", template="plotly_white")
+    else:
+        fig = px.bar(plot_df, x="Year", y="Unemployment Rate", color="Phase", barmode="group",
+                     facet_col="Country" if len(selected_countries) > 1 else None, template="plotly_white")
+
+    fig.update_layout(
+        xaxis=dict(dtick=1),
+        title={
+            'text': f"{selected_education_level} Education Level - Unemployment Impact ({education_year_range[0]}–{education_year_range[1]})",
+            'x': 0.5, 'xanchor': 'center', 'font': dict(size=18)
+        },
+        hovermode="x unified"
+    )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Option to download the chart data as a CSV
-    if st.button("Download Chart Data as CSV"):
-        csv = plot_df.to_csv(index=False)
-        st.download_button(label="Download CSV", data=csv, file_name="education_level_unemployment_data.csv", mime="text/csv")
+    # Download chart data
+    csv = plot_df.to_csv(index=False)
+    st.download_button(label="📥 Download Chart Data as CSV", data=csv, file_name="education_level_unemployment.csv", mime="text/csv")
+
+    # Optional: Compare all education levels
+    if st.checkbox("🔄 Compare All Education Levels"):
+        comp_df = df[
+            (df["Country"].isin(selected_countries)) &
+            (df["Year"].between(education_year_range[0], education_year_range[1]))
+        ]
+        comp_melted = comp_df.melt(id_vars=["Year", "EducationLevel"], value_vars=["Avg_PreAI", "Avg_PostAI"],
+                                   var_name="Phase", value_name="Unemployment Rate")
+
+        fig_all = px.line(comp_melted, x="Year", y="Unemployment Rate", color="EducationLevel",
+                          line_dash="Phase", markers=True, template="plotly_white",
+                          title="📚 Comparison of Education Levels: Pre-AI vs Post-AI Unemployment")
+        fig_all.update_layout(xaxis=dict(dtick=1), hovermode="x unified")
+        st.plotly_chart(fig_all, use_container_width=True)
