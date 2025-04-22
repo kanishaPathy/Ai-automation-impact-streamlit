@@ -309,20 +309,25 @@ else:
         fig_ai.tight_layout()
         st.pyplot(fig_ai)
 
-# --- Sector-wise ---
-st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
 
-fig_bar = px.bar(
-    sector_df,
-    x="Year",
-    y=["Avg_PreAI", "Avg_PostAI"],
-    barmode="group",
-    title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment",
-    labels={"value": "Unemployment Rate", "variable": "AI Era"},
-    height=400
-)
-fig_bar.update_layout(xaxis=dict(dtick=1), xaxis_tickangle=-45)
-st.plotly_chart(fig_bar, use_container_width=True)
+# --- Sector-wise ---
+st.header("🏭 Sector-wise Unemployment Comparison")
+selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
+sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
+sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_year_range[0], sector_year_range[1]))]
+
+if sector_df.empty:
+    st.warning("No data found for selected sector and years.")
+else:
+    plot_df = sector_df.melt(id_vars="Year", value_vars=["Avg_PreAI", "Avg_PostAI"], 
+                             var_name="Phase", value_name="Unemployment Rate")
+
+    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
+    fig = px.bar(plot_df, x="Year", y="Unemployment Rate", color="Phase", barmode="group",
+                 title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment", height=400)
+    fig.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
+
 
 # --- Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
