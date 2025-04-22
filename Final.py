@@ -402,7 +402,9 @@ else:
     alt_df = edu_df.melt(id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"],
                          var_name="Phase", value_name="Unemployment Rate")
 
-    st.subheader(f"📊 Altair Chart for {selected_education_level} ({education_year_range[0] – {education_year_range[1]})")
+    # Correct the subheader for displaying the year range
+    st.subheader(f"📊 Altair Chart for {selected_education_level} ({education_year_range[0]} - {education_year_range[1]})")
+    
     # Altair chart setup
     alt_chart = alt.Chart(alt_df).mark_line(point=True).encode(
         x=alt.X("Year:O", title="Year"),
@@ -423,7 +425,7 @@ else:
 
     csv = alt_df.to_csv(index=False)
     st.download_button(label="⬇️ Download CSV", data=csv, file_name="education_unemployment_altair.csv", mime="text/csv")
-
+    
 #Bubble Chart
 bubble = alt.Chart(df).mark_circle().encode(
     x="Skill_Level:N",
