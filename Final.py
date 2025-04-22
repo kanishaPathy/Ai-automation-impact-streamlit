@@ -453,7 +453,7 @@ gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].me
     value_name="Percentage"
 )
 
-# Define the color scale for Male and Female
+# Gender Distribution Chart
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
     x=alt.X("Sector:N", title="Sector"),  # Set axis title
     y=alt.Y("Percentage:Q", title="Percentage"),  # Set axis title
@@ -464,7 +464,30 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
     title="Gender Distribution by Sector"  # Chart title
 ).interactive()  # Enable zooming and panning
 
-# Layout: Center the chart using Streamlit's column layout
+# AI Role Jobs & AI Adoption Rate Visualization
+# These two visualizations will show AI-related roles and AI adoption rate across sectors.
+
+ai_jobs_adoption_df = df[["Country", "Sector", "Avg_AI_Role_Jobs", "AI_Adoption_Rate"]].melt(
+    id_vars=["Country", "Sector"],
+    var_name="Metric",
+    value_name="Value"
+)
+
+ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
+    x=alt.X("Sector:N", title="Sector"),  # Set axis title
+    y=alt.Y("Value:Q", title="Value"),  # Set axis title
+    color=alt.Color("Metric:N", scale=alt.Scale(domain=["Avg_AI_Role_Jobs", "AI_Adoption_Rate"], range=["#1f77b4", "#ff7f0e"])),  # Custom colors
+    column="Country:N",  # Split the chart by Country
+    tooltip=["Country", "Sector", "Metric", "Value"]  # Tooltips for better interactivity
+).properties(
+    title="AI Role Jobs & AI Adoption Rate by Sector"  # Chart title
+).interactive()  # Enable zooming and panning
+
+# Layout: Center the charts using Streamlit's column layout
 col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
-with col2:  # Place the chart in the center column
-    st.altair_chart(gender_chart, use_container_width=True) 
+
+with col2:  # Place the gender chart in the center column
+    st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
+
+with col2:  # Place the AI-related chart in the center column
+    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
