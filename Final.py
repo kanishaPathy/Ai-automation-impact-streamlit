@@ -473,24 +473,17 @@ metric = st.selectbox(
     ["Revenue", "Growth_Rate"],
     key="metric_selectbox"
 )
-# metric = st.selectbox(
-#     "Select Metric", 
-#     ["Revenue", "Growth_Rate"],
-#     key="metric_selectbox"
-# )
 
 # Ensure all dropdowns have valid selections
-if not all([selected_sector, selected_country, selected_edu, metric]):
+if not all([selected_sector, selected_country, metric]):
     st.warning("Please make selections for all dropdowns to display the chart.")
 else:
     # Display chart header
-    # st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
-      st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country})")
+    st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country})")
     
     # Filter the DataFrame based on the user's selection
     filtered_df = df[(df['Sector'] == selected_sector) & 
-                     (df['Country'] == selected_country) & 
-                     (df['EducationLevel'] == selected_edu)]
+                     (df['Country'] == selected_country)]
 
     if filtered_df.empty:
         st.warning("No data available for the selected filters.")
