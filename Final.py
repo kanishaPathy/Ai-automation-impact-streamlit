@@ -526,4 +526,4 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
 # Layout: Center the chart using Streamlit's column layout
 col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
 with col2:  # Place the chart in the center column
-    st.altair_chart(gender_chart, use_container_width=True)  # Display the chart with dynamic width
+    st.altair_chart(gender_chart, use_container_width=True) 
