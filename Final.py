@@ -154,8 +154,6 @@ with center_col:
 #     prediction = model.predict(input_df)[0]
 #     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
 
-
-
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
 left_col, center_col, right_col = st.columns([1, 2, 1])
@@ -320,17 +318,31 @@ sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_ye
 if sector_df.empty:
     st.warning("No data found for selected sector and years.")
 else:
-    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
-    left_col, center_col, right_col = st.columns([1, 2, 1])
-    with center_col:
-        fig_sector, ax_sector = plt.subplots(figsize=(6, 2.5))
-        sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
-        sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
-        ax_sector.set_ylabel("Unemployment Rate")
-        ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
-        ax_sector.tick_params(axis='x', rotation=45)
-        fig_sector.tight_layout()
-        st.pyplot(fig_sector)
+    st.subheader(f"Unemployment Dot Plot in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
+    
+    # Prepare data in long format
+    dot_data = sector_df.melt(
+        id_vars="Year",
+        value_vars=["Avg_PreAI", "Avg_PostAI"],
+        var_name="AI_Era",
+        value_name="UnemploymentRate"
+    )
+
+    # Create dot plot
+    fig_dot = px.scatter(
+        dot_data,
+        x="Year",
+        y="UnemploymentRate",
+        color="AI_Era",
+        symbol="AI_Era",
+        title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment",
+        labels={"UnemploymentRate": "Unemployment Rate"},
+        height=400
+    )
+    fig_dot.update_traces(marker=dict(size=10))  # Make dots clearer
+    fig_dot.update_layout(xaxis=dict(dtick=1), xaxis_tickangle=-45)
+    st.plotly_chart(fig_dot, use_container_width=True)
+
 
 # --- Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
