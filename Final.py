@@ -503,13 +503,6 @@ else:
         # Optionally display the filtered dataframe if needed
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
-            
-# Gender Distribution
-gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
-    id_vars=["Country", "Sector"],
-    var_name="Gender",
-    value_name="Percentage"
-)
 
 # Gender Distribution
 gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
