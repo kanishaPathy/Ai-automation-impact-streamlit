@@ -38,7 +38,7 @@ country = col2.selectbox("Select Country", sorted(df["Country"].unique()))
 sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
 education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
 
-# # Filtered data for visualizations
+# Filtered data for visualizations
 filtered_df = df[
     (df["Country"] == country) &
     (df["Sector"] == sector) &
@@ -82,7 +82,7 @@ with center_col:
     st.pyplot(fig1)
 
 # --- AI vs Automation Impact ---
-st.subheader("AI vs Automation Impact")
+st.subheader(" 📈 AI vs Automation Impact Over Time")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
     fig2, ax2 = plt.subplots(figsize=(6, 3))
@@ -96,7 +96,7 @@ with center_col:
     ax2.legend()
     st.pyplot(fig2)
 
-#Reskilling
+# Reskilling & Upskilling Programs Trend
 st.subheader("Reskilling & Upskilling Programs Trend")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
@@ -130,8 +130,7 @@ with center_col:
     ax5.tick_params(axis='x', rotation=45)
     st.pyplot(fig5)
 
-# Assuming 'filtered_df' is your dataframe and contains the data
-# --- Sector Growth ---
+# --- Sector Growth --- Over Decline
 st.subheader("Sector Growth/Decline Over Time")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 
@@ -156,7 +155,7 @@ with center_col:
     # Display the plot in Streamlit
     st.pyplot(fig6)
     
-# --- Automation Level ---
+# --- Automation Level --- By ---- Year
 st.subheader("Automation Level by Year")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
@@ -165,7 +164,7 @@ with center_col:
     ax7.tick_params(axis='x', rotation=45)
     st.pyplot(fig7)
 
-# --- Plotly Chart: Unemployment vs Skills Gap ---
+# ---  Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
@@ -178,7 +177,7 @@ with center_col:
     )
     st.plotly_chart(fig8, use_container_width=True)
 
-# --- Plotly Chart: AI Adoption vs Sector Growth ---
+# --- AI Adoption vs Sector Growth ---
 st.subheader("AI Adoption vs Sector Growth")
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
@@ -304,7 +303,6 @@ else:
         height=500  # Set height of the figure (pixels)
     )
     st.plotly_chart(fig, use_container_width=True)
-
 
 
 # --- Unemployment vs Skills Gap ---
