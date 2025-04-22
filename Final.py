@@ -91,30 +91,49 @@ if st.button("Predict Future Impact"):
         'Male_Percentage', 'Female_Percentage'
     ]
 
+    # Fill additional features
     for col in additional_features:
         if pd.api.types.is_numeric_dtype(df[col]):
             input_df[col] = df[col].mean()
         else:
             input_df[col] = df[col].mode()[0]  # most frequent category
 
-    # Encode base categorical inputs
+    # --- Validate that encoders exist ---
+    required_columns = ['Country', 'Sector', 'EducationLevel'] + additional_features
+    missing_encoders = [col for col in required_columns if col in df.columns and col not in label_encoders]
+    if missing_encoders:
+        st.error(f"Missing label encoders for: {missing_encoders}")
+        st.stop()
+
+    # --- Encode base categorical inputs ---
     for col in ['Country', 'Sector', 'EducationLevel']:
-        if input_df[col][0] in label_encoders[col].classes_:
-            input_df[col] = label_encoders[col].transform(input_df[col])
+        value = input_df[col][0]
+        if value in label_encoders[col].classes_:
+            input_df[col] = label_encoders[col].transform([value])
         else:
-            st.error(f"'{input_df[col][0]}' is an unseen label for '{col}'. Please choose another option.")
+            st.error(f"'{value}' is an unseen label for '{col}'. Please choose another option.")
             st.stop()
 
-    # Encode additional features if needed
+    # --- Encode additional features if needed ---
     for col in additional_features:
         if col in label_encoders:
-            if input_df[col][0] in label_encoders[col].classes_:
-                input_df[col] = label_encoders[col].transform(input_df[col])
+            value = input_df[col][0]
+            if value in label_encoders[col].classes_:
+                input_df[col] = label_encoders[col].transform([value])
             else:
-                input_df[col] = label_encoders[col].transform([label_encoders[col].classes_[0]])[0]  # fallback to first known label
+                fallback_value = label_encoders[col].classes_[0]
+                input_df[col] = label_encoders[col].transform([fallback_value])
 
+    # --- Reorder columns to match model ---
+    try:
+        input_df = input_df[model.feature_names_in_]
+    except AttributeError:
+        st.warning("Model does not contain `feature_names_in_`. Ensure input_df matches training feature order.")
+
+    # --- Predict and Show ---
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+
 
     
 #Reskilling
