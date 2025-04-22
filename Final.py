@@ -362,11 +362,15 @@ with center_col:
 #Country compare
 st.header(f"🌍 Country Comparison from {year_range[0]} to {year_range[1]}")
 cols = st.columns(2)
-country1 = cols[0].selectbox("Select First Country", df['_id.Country'].unique(), key='country1')
-country2 = cols[1].selectbox("Select Second Country", [c for c in df['_id.Country'].unique() if c != country1], key='country2')
+country1 = cols[0].selectbox("Select First Country", df['Country'].unique(), key='country1')
+country2 = cols[1].selectbox("Select Second Country", [c for c in df['Country'].unique() if c != country1], key='country2')
 
-compare_df = df[(df['_id.Country'].isin([country1, country2])) & (df['_id.Year'] >= year_range[0]) & (df['_id.Year'] <= year_range[1])]
-fig1 = px.bar(compare_df, x='_id.Sector', y='Avg_Automation_Impact', color='_id.Country',
+compare_df = df[(df['Country'].isin([country1, country2])) & (df['Year'] >= year_range[0]) & (df['Year'] <= year_range[1])]
+
+# Plot the comparison using Plotly
+fig1 = px.bar(compare_df, x='Sector', y='Avg_Automation_Impact', color='Country',
               title=f'Automation Impact: {country1} vs {country2} ({year_range[0]} - {year_range[1]})',
               barmode='group', height=400)
+
 st.plotly_chart(fig1, use_container_width=True)
+
