@@ -9,7 +9,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 # Load model and encoders
 model = joblib.load("xgboost_model.pkl")
-label_encoders = joblib.load("label_encoders.pkl")
+label_encoders = joblib.load("label_encoders1.pkl")
 
 # Load new dataset
 df = pd.read_csv("FINAL__Compressed_Dataset.csv.gz")
