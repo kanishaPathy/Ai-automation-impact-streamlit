@@ -4,25 +4,35 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import xgboost as xgb
+import plotly.express as px
+
 
 # Load model and encoders
-model = joblib.load("xgboost_model.pkl")
-label_encoders = joblib.load("label_encoders.pkl")
+model = joblib.load("xgb_model_final.pkl")
+label_encoders = joblib.load("label_encoders1.pkl")
 
-# Load datasets
-df = pd.read_csv("merged_data_updated.csv")
-# df_encoded = pd.read_csv('datasets/merged_combined_data_encoded.csv')
+# Load new dataset
+df = pd.read_csv("FINAL__Compressed_Dataset.csv.gz")
 
-# App title
-st.title("AI & Automation Impact Prediction Dashboard")
+# ... Keep all import and initial setup unchanged ...
+# Set wide layout and app title
+st.set_page_config(page_title="AI Automation Impact", layout="wide")
+st.title("🤖 AI Automation Impact Prediction & Insights")
 
-# Sidebar filters
-country = st.sidebar.selectbox("Select Country", sorted(df["Country"].unique()))
-sector = st.sidebar.selectbox("Select Sector", sorted(df["Sector"].unique()))
-education = st.sidebar.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
-year_range = st.sidebar.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2015, 2024))
+# Load model and data
+model = joblib.load("xgb_model_final.pkl")
+label_encoders = joblib.load("label_encoders1.pkl")
+df = pd.read_csv("FINAL__Compressed_Dataset.csv.gz")
 
-# Filtered data for visualizations
+# ---------- User Input Section ----------
+st.markdown("### 🎯 Select Parameters for Prediction")
+col1, col2, col3, col4 = st.columns(4)
+year_range = col1.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2015, 2024))
+country = col2.selectbox("Select Country", sorted(df["Country"].unique()))
+sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
+education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
+
+# Filter data for visualizations
 filtered_df = df[
     (df["Country"] == country) &
     (df["Sector"] == sector) &
@@ -30,17 +40,46 @@ filtered_df = df[
     (df["Year"].between(year_range[0], year_range[1]))
 ]
 
-# Line chart: PreAI vs PostAI impact
+# --- Prediction Section ---
+input_df = pd.DataFrame({
+    '_id.Country': [country],
+    '_id.Sector': [sector],
+    '_id.Year': [year_range[0]],
+    '_id.EducationLevel': [education],
+})
+
+X_train = df.drop(columns=['Avg_Automation_Impact'])
+X_encoded = pd.get_dummies(X_train)
+input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
+input_encoded = input_encoded.reindex(columns=model.get_booster().feature_names, fill_value=0)
+
+with st.spinner("Predicting Automation Impact..."):
+    prediction = model.predict(input_encoded)[0]
+st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
+
+# --- Visualization Sections ---
+def center_plot(fig):
+    left, center, right = st.columns([1, 2, 1])
+    with center:
+        st.pyplot(fig)
+
+def center_plotly(fig):
+    left, center, right = st.columns([1, 2, 1])
+    with center:
+        st.plotly_chart(fig, use_container_width=True)
+
+# --- Unemployment Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
-fig1, ax1 = plt.subplots()
+fig1, ax1 = plt.subplots(figsize=(6, 3))
 sns.lineplot(data=filtered_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax1)
 sns.lineplot(data=filtered_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax1)
-plt.xticks(rotation=45)
-st.pyplot(fig1)
+ax1.set_title("Unemployment Before vs After AI", fontsize=12)
+ax1.tick_params(axis='x', rotation=45)
+center_plot(fig1)
 
-# Bar chart: AI vs Automation Impact
+# --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
-fig2, ax2 = plt.subplots()
+fig2, ax2 = plt.subplots(figsize=(6, 3))
 bar_width = 0.35
 years = filtered_df["Year"].astype(str)
 x = range(len(years))
@@ -48,241 +87,89 @@ ax2.bar(x, filtered_df["Avg_Automation_Impact"], width=bar_width, label="Automat
 ax2.bar([i + bar_width for i in x], filtered_df["Avg_AI_Role_Jobs"], width=bar_width, label="AI Role Jobs")
 ax2.set_xticks([i + bar_width / 2 for i in x])
 ax2.set_xticklabels(years, rotation=45)
-ax2.set_ylabel("Impact")
 ax2.legend()
-st.pyplot(fig2)
+center_plot(fig2)
 
-# Prediction button
-if st.button("Predict Future Impact"):
-    # Prepare prediction input (first year in the selected range)
-    input_df = pd.DataFrame({
-        'Country': [country],
-        'Sector': [sector],
-        'Year': [year_range[0]],
-        'EducationLevel': [education]
-    })
-
-    # Add the rest of the features using mean from original dataset
-    additional_features = [
-        'Avg_PreAI', 'Avg_PostAI', 'Avg_Automation_Impact', 'Avg_AI_Role_Jobs',
-        'Avg_ReskillingPrograms', 'Avg_EconomicImpact', 'Skill_Level', 'Skills_Gap',
-        'Reskilling_Demand', 'Upskilling_Programs', 'Automation_Impact_Level',
-        'Revenue', 'Growth_Rate', 'AI_Adoption_Rate', 'Automation_Level',
-        'Sector_Impact_Score', 'Tech_Investment', 'Sector_Growth_Decline',
-        'Male_Percentage', 'Female_Percentage'
-    ]
-    
-    for col in additional_features:
-        input_df[col] = df[col].mean()
-
-    # Apply label encoding to categorical variables
-    for col in ['Country', 'Sector', 'EducationLevel']:
-        input_df[col] = label_encoders[col].transform(input_df[col])
-
-    # Predict using model
-    prediction = model.predict(input_df)[0]
-
-    # Display prediction
-    st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-#Reskilling
+# --- Reskilling & Upskilling ---
 st.subheader("Reskilling & Upskilling Programs Trend")
-fig3, ax3 = plt.subplots()
+fig3, ax3 = plt.subplots(figsize=(6, 3))
 sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
 sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
-ax3.set_ylabel("Programs / Demand Level")
-ax3.set_xticks(filtered_df["Year"].unique())
 ax3.tick_params(axis='x', rotation=45)
-st.pyplot(fig3)
+center_plot(fig3)
 
-#Gender
-
+# --- Gender Distribution ---
 st.subheader("Gender Distribution in Employment (%)")
-fig4, ax4 = plt.subplots()
-bar_width = 0.4
+fig4, ax4 = plt.subplots(figsize=(6, 3))
 x = range(len(filtered_df["Year"]))
-ax4.bar(x, filtered_df["Male_Percentage"], width=bar_width, label="Male")
-ax4.bar([i + bar_width for i in x], filtered_df["Female_Percentage"], width=bar_width, label="Female")
-ax4.set_xticks([i + bar_width / 2 for i in x])
+ax4.bar(x, filtered_df["Male_Percentage"], width=0.4, label="Male")
+ax4.bar([i + 0.4 for i in x], filtered_df["Female_Percentage"], width=0.4, label="Female")
+ax4.set_xticks([i + 0.2 for i in x])
 ax4.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
-ax4.set_ylabel("Percentage")
 ax4.legend()
-st.pyplot(fig4)
+center_plot(fig4)
 
-#Technology
+# --- Tech Investment vs AI Adoption ---
 st.subheader("Tech Investment vs AI Adoption Rate")
-fig5, ax5 = plt.subplots()
+fig5, ax5 = plt.subplots(figsize=(6, 3))
 sns.lineplot(data=filtered_df, x="Year", y="Tech_Investment", label="Tech Investment", marker="o", ax=ax5)
 sns.lineplot(data=filtered_df, x="Year", y="AI_Adoption_Rate", label="AI Adoption Rate", marker="o", ax=ax5)
-ax5.set_ylabel("Values")
-ax5.set_xticks(filtered_df["Year"].unique())
 ax5.tick_params(axis='x', rotation=45)
-st.pyplot(fig5)
+center_plot(fig5)
 
-#Growth
+# --- Sector Growth/Decline ---
 st.subheader("Sector Growth/Decline Over Time")
-fig6, ax6 = plt.subplots()
+fig6, ax6 = plt.subplots(figsize=(6, 3))
+filtered_df['Year'] = filtered_df['Year'].astype(str)
 sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
-ax6.set_ylabel("Growth/Decline Index")
-ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
-st.pyplot(fig6)
-#Automation level by year
+ax6.set_xticklabels(filtered_df["Year"].unique(), rotation=45, ha="right")
+fig6.tight_layout()
+center_plot(fig6)
 
+# --- Automation Level ---
 st.subheader("Automation Level by Year")
-fig7, ax7 = plt.subplots()
+fig7, ax7 = plt.subplots(figsize=(6, 3))
 sns.lineplot(data=filtered_df, x="Year", y="Automation_Level", marker="o", ax=ax7)
-ax7.set_ylabel("Automation Level")
-ax7.set_xticks(filtered_df["Year"].unique())
 ax7.tick_params(axis='x', rotation=45)
-st.pyplot(fig7)
-## Visualization 7:Country vs all sectors
+center_plot(fig7)
 
+# --- Unemployment vs Skills Gap ---
+st.subheader("Unemployment Impact vs Skills Gap")
+fig8 = px.line(filtered_df, x="Year", y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+               labels={"value": "Impact/Gap"}, title="AI's Impact on Unemployment and Skills Gap")
+center_plotly(fig8)
+
+# --- AI Adoption vs Sector Growth ---
+st.subheader("AI Adoption vs Sector Growth")
+fig9 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+              barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
+center_plotly(fig9)
+
+# --- Country vs Sector Comparison ---
 st.header("📊 Country vs Selected Sectors Comparison")
-
-# Filters
 selected_country = st.selectbox("Select Country", sorted(df["Country"].unique()), key="country_sector_view")
 available_sectors = df["Sector"].unique()
 selected_sectors = st.multiselect("Select Sectors", sorted(available_sectors), default=list(available_sectors[:2]), key="sector_multi")
 
-# Filter data
-comparison_df = df[
-    (df["Country"] == selected_country) & 
-    (df["Sector"].isin(selected_sectors))
-]
+comparison_df = df[(df["Country"] == selected_country) & (df["Sector"].isin(selected_sectors))]
 
-# Check if data exists
 if comparison_df.empty:
     st.warning("No data available for the selected filters.")
 else:
-    # Line chart: AI Adoption Rate by Sector
     st.subheader(f"AI Adoption Rate over Years in {selected_country}")
-    fig_sector_ai, ax_ai = plt.subplots()
+    fig_sector_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
     sns.lineplot(data=comparison_df, x="Year", y="AI_Adoption_Rate", hue="Sector", marker="o", ax=ax_ai)
     ax_ai.set_ylabel("AI Adoption Rate")
     ax_ai.set_xticks(sorted(comparison_df["Year"].unique()))
     ax_ai.tick_params(axis='x', rotation=45)
-    st.pyplot(fig_sector_ai)
+    fig_sector_ai.tight_layout()
+    center_plot(fig_sector_ai)
 
-    # Line chart: Automation Level
     st.subheader(f"Automation Level over Years in {selected_country}")
-    fig_sector_auto, ax_auto = plt.subplots()
+    fig_sector_auto, ax_auto = plt.subplots(figsize=(6, 2.5))
     sns.lineplot(data=comparison_df, x="Year", y="Automation_Level", hue="Sector", marker="o", ax=ax_auto)
     ax_auto.set_ylabel("Automation Level")
     ax_auto.set_xticks(sorted(comparison_df["Year"].unique()))
     ax_auto.tick_params(axis='x', rotation=45)
-    st.pyplot(fig_sector_auto)
-
-    # Bar plot: Sector Impact Score (average over years)
-    st.subheader(f"Average Sector Impact Score in {selected_country}")
-    avg_impact_df = comparison_df.groupby("Sector")["Sector_Impact_Score"].mean().reset_index()
-    fig_impact, ax_impact = plt.subplots()
-    sns.barplot(data=avg_impact_df, x="Sector", y="Sector_Impact_Score", palette="viridis", ax=ax_impact)
-    ax_impact.set_ylabel("Avg Impact Score")
-    ax_impact.set_title("Sector-Wise Avg Impact")
-    st.pyplot(fig_impact)
-    
-## Visualization 8 Country Comparison
-st.header("🌍 Country Comparison from 2010 to 2022")
-# Country Comparison
-st.header("🌍 Country Comparison from 2010 to 2022")
-
-# Country selectors
-country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
-country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
-
-# Visualization 9: Filtered data
-country_df = df[df["Country"].isin([country1, country2]) & df["Year"].between(2010, 2022)]
-
-if country_df.empty:
-    st.warning("No data available for selected countries and years.")
-else:
-    # Reshape for PreAI/PostAI Unemployment
-    melted_df = pd.melt(
-        country_df,
-        id_vars=["Year", "Country"],
-        value_vars=["Avg_PreAI", "Avg_PostAI"],
-        var_name="Type",
-        value_name="Unemployment"
-    )
-
-    # Rename for cleaner legend
-    melted_df["Type"] = melted_df["Type"].replace({
-        "Avg_PreAI": "Pre-AI",
-        "Avg_PostAI": "Post-AI"
-    })
-
-    # Line plot
-    st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
-    fig_cmp, ax_cmp = plt.subplots()
-    sns.lineplot(
-        data=melted_df,
-        x="Year",
-        y="Unemployment",
-        hue="Type",
-        style="Country",
-        markers=True,
-        dashes=False,
-        ax=ax_cmp
-    )
-    ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
-    ax_cmp.set_ylabel("Unemployment Rate")
-    ax_cmp.tick_params(axis='x', rotation=45)
-    st.pyplot(fig_cmp)
-
-    # AI Adoption Rate Comparison
-    st.subheader("AI Adoption Rate Comparison")
-    fig_ai, ax_ai = plt.subplots()
-    sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
-    ax_ai.set_ylabel("AI Adoption Rate")
-    ax_ai.set_title("AI Adoption Rate (2010-2022)")
-    ax_ai.tick_params(axis='x', rotation=45)
-    st.pyplot(fig_ai)
-
-
-# Visualization 11:Sector wise
-st.header("🏭 Sector-wise Unemployment Comparison")
-
-# Select sector and year range
-selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
-sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
-
-# Filtered sector data
-sector_df = df[
-    (df["Sector"] == selected_sector) &
-    (df["Year"].between(sector_year_range[0], sector_year_range[1]))
-]
-
-if sector_df.empty:
-    st.warning("No data found for selected sector and years.")
-else:
-    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
-    
-    fig_sector, ax_sector = plt.subplots()
-    sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
-    sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
-    ax_sector.set_ylabel("Unemployment Rate")
-    ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
-    ax_sector.tick_params(axis='x', rotation=45)
-    st.pyplot(fig_sector)
-    
-# Visualization 10: Unemployment vs Skills Gap
-st.subheader("Unemployment Impact vs Skills Gap")
-fig1 = px.line(filtered_df, x="Year", 
-               y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
-               labels={"value": "Impact/Gap"}, 
-               title="AI's Impact on Unemployment and Skills Gap")
-st.plotly_chart(fig1)
-
-# Visualization 6: AI Adoption vs Sector Growth
-st.subheader("AI Adoption vs Sector Growth")
-fig2 = px.bar(filtered_df, x="Year", y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
-              barmode="group", title="AI Adoption Rate vs Sector Growth Decline")
-st.plotly_chart(fig2)
-# Check the shape of filtered_df before transformation
-st.write("Filtered Data:", filtered_df.head())  # Display first few rows
-st.write("Number of rows in filtered data:", filtered_df.shape[0])
-
-# Check the shape of filtered_df before transformation
-st.write("Filtered Data Preview:", filtered_df.head())  # Display first few rows
-st.write("Number of rows in filtered data:", filtered_df.shape[0])
-
-
+    fig_sector_auto.tight_layout()
+    center_plot(fig_sector_auto)
