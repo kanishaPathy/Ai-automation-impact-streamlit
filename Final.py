@@ -465,7 +465,6 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
 ).interactive()  # Enable zooming and panning
 
 # AI Role Jobs & AI Adoption Rate Visualization
-# These two visualizations will show AI-related roles and AI adoption rate across sectors.
 ai_jobs_adoption_df = df[["Country", "Sector", "Avg_AI_Role_Jobs", "AI_Adoption_Rate"]].melt(
     id_vars=["Country", "Sector"],
     var_name="Metric",
@@ -482,22 +481,12 @@ ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
     title="AI Role Jobs & AI Adoption Rate by Sector"  # Chart title
 ).interactive()  # Enable zooming and panning
 
-# Use session state to track if charts have been rendered already
-if 'rendered_gender_chart' not in st.session_state:
-    st.session_state.rendered_gender_chart = False
-
-if 'rendered_ai_jobs_chart' not in st.session_state:
-    st.session_state.rendered_ai_jobs_chart = False
-
 # Layout: Center the charts using Streamlit's column layout
-col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with the center column being larger
 
-if not st.session_state.rendered_gender_chart:
-    with col2:  # Place the gender chart in the center column
-        st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
-    st.session_state.rendered_gender_chart = True
+# Ensure that charts are rendered only once
+with col2:  # Place the gender chart in the center column
+    st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
 
-if not st.session_state.rendered_ai_jobs_chart:
-    with col2:  # Place the AI-related chart in the center column
-        st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
-    st.session_state.rendered_ai_jobs_chart = True
+with col2:  # Place the AI-related chart in the center column
+    st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
