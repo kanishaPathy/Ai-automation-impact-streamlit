@@ -195,9 +195,18 @@ left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
     fig6, ax6 = plt.subplots(figsize=(6, 3))
     sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
-    ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
+    
+    # Rotate year labels and ensure proper spacing
+    ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45, ha="right")
+    
+    # Optionally, set x-axis ticks manually if needed
+    ax6.set_xticks(filtered_df["Year"].unique())
+    
+    # Adjust layout to prevent overlap
+    fig6.tight_layout()
+    
     st.pyplot(fig6)
-
+    
 # --- Automation Level ---
 st.subheader("Automation Level by Year")
 left_col, center_col, right_col = st.columns([1, 2, 1])
