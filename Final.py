@@ -107,12 +107,11 @@ if st.button("Predict Future Impact"):
                 # Value is seen, transform normally
                 input_df[col] = label_encoders[col].transform([value])
             else:
-                # Handle unseen labels by transforming them as a default category
+                # Handle unseen labels by assigning a default encoded value
                 st.warning(f"'{value}' is an unseen label for '{col}'. Replacing with 'Unknown'.")
-                # Add 'Unknown' as a possible category in the encoder before transforming
-                label_encoders[col].classes_ = list(label_encoders[col].classes_) + ['Unknown']
-                # Ensure we assign the transformed value properly
-                input_df[col] = pd.Series(label_encoders[col].transform(['Unknown']))
+                # Assign a default value if unseen, instead of trying to transform 'Unknown' using the encoder
+                input_df[col] = label_encoders[col].transform([label_encoders[col].classes_[0]])  # Assign the first class (or any valid class)
+                input_df[col] = input_df[col].replace(0, label_encoders[col].transform(['Unknown'])[0])  # Map the value to 'Unknown'
 
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
@@ -121,6 +120,7 @@ if st.button("Predict Future Impact"):
     # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+
 
 
 #Reskilling
