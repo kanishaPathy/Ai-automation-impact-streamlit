@@ -111,7 +111,8 @@ if st.button("Predict Future Impact"):
                 st.warning(f"'{value}' is an unseen label for '{col}'. Replacing with 'Unknown'.")
                 # Add 'Unknown' as a possible category in the encoder before transforming
                 label_encoders[col].classes_ = list(label_encoders[col].classes_) + ['Unknown']
-                input_df[col] = label_encoders[col].transform(['Unknown'])  # Transform to 'Unknown'
+                # Ensure we assign the transformed value properly
+                input_df[col] = pd.Series(label_encoders[col].transform(['Unknown']))
 
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
@@ -120,6 +121,7 @@ if st.button("Predict Future Impact"):
     # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
+
 
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
