@@ -494,12 +494,19 @@ else:
         # Optionally display the filtered dataframe if needed
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
+#Gender Distribution
+gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
+    id_vars=["Country", "Sector"],
+    var_name="Gender",
+    value_name="Percentage"
+)
 
-#Sector Growth
-scatter = alt.Chart(df).mark_circle(size=80).encode(
-    x="Sector_Growth_Decline:Q",
-    y="Avg_EconomicImpact:Q",
-    color="Sector:N",
-    tooltip=["Sector", "Sector_Growth_Decline", "Avg_EconomicImpact"]
-).properties(title="Economic Impact vs Sector Growth Decline").interactive()
-st.altair_chart(scatter, use_container_width=True)
+gender_chart = alt.Chart(gender_df).mark_bar().encode(
+    x="Sector:N",
+    y="Percentage:Q",
+    color="Gender:N",
+    column="Country:N",
+    tooltip=["Country", "Sector", "Gender", "Percentage"]
+).properties(title="Gender Distribution by Sector").interactive()
+st.altair_chart(gender_chart, use_container_width=True)
+
