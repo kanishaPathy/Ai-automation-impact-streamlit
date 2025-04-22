@@ -457,7 +457,7 @@ gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].me
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
     x=alt.X("Sector:N", title="Sector"),  # Set axis title
     y=alt.Y("Percentage:Q", title="Percentage"),  # Set axis title
-    color=alt.Color("Gender:N", scale=alt.Scale(domain=["Male_Percentage", "Female_Percentage"], range=["#1f77b4", "#ff7f0e"])),  # Custom colors for Male and Female
+    color=alt.Color("Gender:N", scale=alt.Scale(domain=["Male_Percentage", "Female_Percentage"], range=["#1f77b4", "#ff7f0e"])),  # Custom colors
     column="Country:N",  # Split the chart by Country
     tooltip=["Country", "Sector", "Gender", "Percentage"]  # Tooltips for better interactivity
 ).properties(
@@ -466,7 +466,6 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
 
 # AI Role Jobs & AI Adoption Rate Visualization
 # These two visualizations will show AI-related roles and AI adoption rate across sectors.
-
 ai_jobs_adoption_df = df[["Country", "Sector", "Avg_AI_Role_Jobs", "AI_Adoption_Rate"]].melt(
     id_vars=["Country", "Sector"],
     var_name="Metric",
@@ -483,27 +482,22 @@ ai_jobs_adoption_chart = alt.Chart(ai_jobs_adoption_df).mark_bar().encode(
     title="AI Role Jobs & AI Adoption Rate by Sector"  # Chart title
 ).interactive()  # Enable zooming and panning
 
-# Ensure charts are rendered properly without duplication
-if 'gender_chart_rendered' not in st.session_state:
-    st.session_state.gender_chart_rendered = False
+# Use session state to track if charts have been rendered already
+if 'rendered_gender_chart' not in st.session_state:
+    st.session_state.rendered_gender_chart = False
 
-if not st.session_state.gender_chart_rendered:
-    # Layout: Center the charts using Streamlit's column layout
-    col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+if 'rendered_ai_jobs_chart' not in st.session_state:
+    st.session_state.rendered_ai_jobs_chart = False
 
+# Layout: Center the charts using Streamlit's column layout
+col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+
+if not st.session_state.rendered_gender_chart:
     with col2:  # Place the gender chart in the center column
         st.altair_chart(gender_chart, use_container_width=True)  # Display the gender distribution chart
+    st.session_state.rendered_gender_chart = True
 
-    # Set the flag to True to prevent re-rendering of the chart
-    st.session_state.gender_chart_rendered = True
-
-# Create a new column to display the second chart properly without overlap
-if 'ai_jobs_adoption_chart_rendered' not in st.session_state:
-    st.session_state.ai_jobs_adoption_chart_rendered = False
-
-if not st.session_state.ai_jobs_adoption_chart_rendered:
+if not st.session_state.rendered_ai_jobs_chart:
     with col2:  # Place the AI-related chart in the center column
         st.altair_chart(ai_jobs_adoption_chart, use_container_width=True)  # Display the AI role jobs and adoption rate chart
-
-    # Set the flag to True to prevent re-rendering of the chart
-    st.session_state.ai_jobs_adoption_chart_rendered = True
+    st.session_state.rendered_ai_jobs_chart = True
