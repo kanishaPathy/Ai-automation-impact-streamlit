@@ -486,14 +486,11 @@ else:
     # Display chart header
     # st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
       st.subheader(f"Bar Chart for {metric} in {selected_sector} ({selected_country})")
+    
     # Filter the DataFrame based on the user's selection
     filtered_df = df[(df['Sector'] == selected_sector) & 
-                     (df['Country'] == selected_country) 
-                     ]
- # # Filter the DataFrame based on the user's selection
- #    filtered_df = df[(df['Sector'] == selected_sector) & 
- #                     (df['Country'] == selected_country) & 
- #                     (df['EducationLevel'] == selected_edu)]
+                     (df['Country'] == selected_country) & 
+                     (df['EducationLevel'] == selected_edu)]
 
     if filtered_df.empty:
         st.warning("No data available for the selected filters.")
