@@ -91,46 +91,29 @@ if st.button("Predict Future Impact"):
         'Male_Percentage', 'Female_Percentage'
     ]
 
-    # Fill additional features
+    # Fill in means/modes
     for col in additional_features:
         if pd.api.types.is_numeric_dtype(df[col]):
             input_df[col] = df[col].mean()
         else:
-            input_df[col] = df[col].mode()[0]  # most frequent category
+            input_df[col] = df[col].mode()[0]
 
-    # --- Validate that encoders exist ---
-    required_columns = ['Country', 'Sector', 'EducationLevel'] + additional_features
-    missing_encoders = [col for col in required_columns if col in df.columns and col not in label_encoders]
-    if missing_encoders:
-        st.error(f"Missing label encoders for: {missing_encoders}")
-        st.stop()
-
-    # --- Encode base categorical inputs ---
-    for col in ['Country', 'Sector', 'EducationLevel']:
-        value = input_df[col][0]
-        if value in label_encoders[col].classes_:
-            input_df[col] = label_encoders[col].transform([value])
-        else:
-            st.error(f"'{value}' is an unseen label for '{col}'. Please choose another option.")
-            st.stop()
-
-    # --- Encode additional features if needed ---
-    for col in additional_features:
-        if col in label_encoders:
+    # Only encode categorical columns (avoid numeric encoding)
+    categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
+    for col in categorical_cols:
+        if col in input_df.columns and col in label_encoders:
             value = input_df[col][0]
             if value in label_encoders[col].classes_:
                 input_df[col] = label_encoders[col].transform([value])
             else:
-                fallback_value = label_encoders[col].classes_[0]
-                input_df[col] = label_encoders[col].transform([fallback_value])
+                st.error(f"'{value}' is an unseen label for '{col}'. Please choose another option.")
+                st.stop()
 
-    # --- Reorder columns to match model ---
-    try:
+    # Optional: reorder columns if model requires specific order
+    if hasattr(model, 'feature_names_in_'):
         input_df = input_df[model.feature_names_in_]
-    except AttributeError:
-        st.warning("Model does not contain `feature_names_in_`. Ensure input_df matches training feature order.")
 
-    # --- Predict and Show ---
+    # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
 
