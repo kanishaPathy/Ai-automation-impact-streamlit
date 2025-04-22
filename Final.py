@@ -504,7 +504,8 @@ else:
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
 
-# Gender Distribution
+
+# Reshape the DataFrame to long format for gender distribution
 gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
     id_vars=["Country", "Sector"],
     var_name="Gender",
@@ -513,15 +514,16 @@ gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].me
 
 # Define the color scale for Male and Female
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
-    x="Sector:N",
-    y="Percentage:Q",
+    x=alt.X("Sector:N", title="Sector"),  # Set axis title
+    y=alt.Y("Percentage:Q", title="Percentage"),  # Set axis title
     color=alt.Color("Gender:N", scale=alt.Scale(domain=["Male_Percentage", "Female_Percentage"], range=["#1f77b4", "#ff7f0e"])),  # Custom colors for Male and Female
-    column="Country:N",
-    tooltip=["Country", "Sector", "Gender", "Percentage"]
-).properties(title="Gender Distribution by Sector").interactive()
+    column="Country:N",  # Split the chart by Country
+    tooltip=["Country", "Sector", "Gender", "Percentage"]  # Tooltips for better interactivity
+).properties(
+    title="Gender Distribution by Sector"  # Chart title
+).interactive()  # Enable zooming and panning
 
-# Centering the chart using Streamlit's layout functions
-col1, col2, col3 = st.columns([1, 2, 1])  # Adjust the column weights to control space
-with col2:  # Centering the chart in the middle column
-    # Display the gender distribution chart directly in Streamlit
-    st.altair_chart(gender_chart, use_container_width=True)  # This will center the chart in the columnn
+# Layout: Center the chart using Streamlit's column layout
+col1, col2, col3 = st.columns([1, 2, 1])  # Three columns, with center column being larger
+with col2:  # Place the chart in the center column
+    st.altair_chart(gender_chart, use_container_width=True)  # Display the chart with dynamic width
