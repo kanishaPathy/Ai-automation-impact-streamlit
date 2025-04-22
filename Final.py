@@ -98,7 +98,7 @@ if st.button("Predict Future Impact"):
         else:
             input_df[col] = df[col].mode()[0]
 
-    # Only encode categorical columns (avoid numeric encoding)
+    # Handle unseen categorical labels
     categorical_cols = ['Country', 'Sector', 'EducationLevel', 'Skill_Level', 'Automation_Impact_Level', 'AI_Adoption_Rate', 'Automation_Level', 'Sector_Growth_Decline']
     for col in categorical_cols:
         if col in input_df.columns and col in label_encoders:
@@ -106,8 +106,8 @@ if st.button("Predict Future Impact"):
             if value in label_encoders[col].classes_:
                 input_df[col] = label_encoders[col].transform([value])
             else:
-                st.error(f"'{value}' is an unseen label for '{col}'. Please choose another option.")
-                st.stop()
+                st.warning(f"'{value}' is an unseen label for '{col}'. Replacing with 'Unknown'.")
+                input_df[col] = label_encoders[col].transform(['Unknown'])  # Replace with 'Unknown'
 
     # Optional: reorder columns if model requires specific order
     if hasattr(model, 'feature_names_in_'):
@@ -116,7 +116,6 @@ if st.button("Predict Future Impact"):
     # Predict
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-
 
     
 #Reskilling
