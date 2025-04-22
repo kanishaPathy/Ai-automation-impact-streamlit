@@ -519,6 +519,13 @@ gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].me
     value_name="Percentage"
 )
 
+# Gender Distribution
+gender_df = df[["Country", "Sector", "Male_Percentage", "Female_Percentage"]].melt(
+    id_vars=["Country", "Sector"],
+    var_name="Gender",
+    value_name="Percentage"
+)
+
 # Define the color scale for Male and Female
 gender_chart = alt.Chart(gender_df).mark_bar().encode(
     x="Sector:N",
@@ -528,12 +535,8 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
     tooltip=["Country", "Sector", "Gender", "Percentage"]
 ).properties(title="Gender Distribution by Sector").interactive()
 
-# Save chart as an image using altair_saver
-image_path = "/tmp/gender_distribution_chart.png"  # Temporary path to save the image
-save(gender_chart, image_path)
-
 # Centering the chart using Streamlit's layout functions
 col1, col2, col3 = st.columns([1, 2, 1])  # Adjust the column weights to control space
 with col2:  # Centering the chart in the middle column
-    # Display the saved chart image
-    st.image(image_path, width=400)  # Adjust 'width' to make it smaller (e.g., 400px)
+    # Display the gender distribution chart directly in Streamlit
+    st.altair_chart(gender_chart, use_container_width=True)  # This will center the chart in the column
