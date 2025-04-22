@@ -444,3 +444,39 @@ bar_chart = alt.Chart(df).mark_bar().encode(
     tooltip=["Sector", "Avg_Automation_Impact"]
 ).properties(title="Automation Impact by Sector").interactive()
 st.altair_chart(bar_chart, use_container_width=True)
+
+# Chart display
+st.subheader(f"{chart_type} Chart for {metric} in {selected_sector} ({selected_country}, {selected_edu})")
+
+if filtered_df.empty:
+    st.warning("No data available for the selected filters.")
+else:
+    if chart_type == "Bar":
+        fig = px.bar(filtered_df, x="Year", y=metric, color="Year", title=metric)
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart_type == "Line":
+        fig = px.line(filtered_df, x="Year", y=metric, markers=True, title=metric)
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart_type == "Radar":
+        import plotly.graph_objects as go
+        # Pick some relevant metrics to show in radar
+        radar_metrics = [
+            "Revenue", "Growth_Rate", "Automation_Impact_Level", "AI_Adoption_Rate", "Tech_Investment"
+        ]
+        radar_data = filtered_df[radar_metrics].mean().reset_index()
+        fig = go.Figure(data=go.Scatterpolar(
+            r=radar_data[0],
+            theta=radar_data['index'],
+            fill='toself',
+            name=f"{selected_sector}"
+        ))
+        fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart_type == "Heatmap":
+        heatmap_data = filtered_df.pivot_table(index="Year", columns="EducationLevel", values=metric)
+        fig, ax = plt.subplots()
+        sns.heatmap(heatmap_data, annot=True, fmt=".1f", cmap="YlGnBu", ax=ax)
+        st.pyplot(fig)
