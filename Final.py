@@ -13,6 +13,8 @@ label_encoders = joblib.load("label_encoders.pkl")
 # Load new dataset
 df = pd.read_csv("FINAL__Compressed_Dataset.csv.gz")
 
+# ... Keep all import and initial setup unchanged ...
+
 # App title
 st.set_page_config(page_title="AI Automation Impact", layout="wide")
 st.title("🤖 AI Automation Impact Prediction & Insights")
@@ -20,13 +22,21 @@ st.title("🤖 AI Automation Impact Prediction & Insights")
 # ---------- User Inputs Section ----------
 st.markdown("### 🎯 Select Parameters for Prediction")
 
+# Create 4 side-by-side columns
 col1, col2, col3, col4 = st.columns(4)
-year_range = col1.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2015, 2024))
+
+# Inline controls instead of sidebar
+year_range = col1.slider(
+    "Select Year Range",
+    int(df["Year"].min()),
+    int(df["Year"].max()),
+    (2015, 2024)
+)
 country = col2.selectbox("Select Country", sorted(df["Country"].unique()))
 sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
 education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
 
-# Filtered data
+# Filtered data for visualizations
 filtered_df = df[
     (df["Country"] == country) &
     (df["Sector"] == sector) &
@@ -35,17 +45,19 @@ filtered_df = df[
 ]
 
 # --- Unemployment Impact Before vs After AI ---
+# --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
-col1 = st.columns([1])[0]
-with col1:
-    fig1, ax1 = plt.subplots(figsize=(8, 4))
+
+# Create three columns and put the plot in the center one
+left_col, center_col, right_col = st.columns([1, 2, 1])
+
+with center_col:
+    fig1, ax1 = plt.subplots(figsize=(6, 3))  # Moderate size
     sns.lineplot(data=filtered_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax1)
     sns.lineplot(data=filtered_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax1)
-    ax1.set_title("Unemployment Impact Before vs After AI")
-    ax1.set_xlabel("Year")
-    ax1.set_ylabel("Average Unemployment Rate")
+    ax1.set_title("Unemployment Impact Before vs After AI", fontsize=12)
     ax1.tick_params(axis='x', rotation=45)
-    st.pyplot(fig1, use_container_width=True)
+    st.pyplot(fig1)
 
 # --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
@@ -62,7 +74,7 @@ with col2:
     ax2.legend()
     st.pyplot(fig2)
 
-# --- Prediction ---
+# --- Prediction Button ---
 if st.button("Predict Future Impact"):
     input_df = pd.DataFrame({
         'Country': [country],
@@ -84,8 +96,8 @@ if st.button("Predict Future Impact"):
         input_df[col] = label_encoders[col].transform(input_df[col])
     prediction = model.predict(input_df)[0]
     st.success(f"Predicted Impact Score for {year_range[0]}: {prediction:.2f}")
-
-# --- Reskilling & Upskilling ---
+    
+#Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
 col3, _ = st.columns([2, 1])
 with col3:
@@ -95,7 +107,7 @@ with col3:
     ax3.tick_params(axis='x', rotation=45)
     st.pyplot(fig3)
 
-# --- Gender Distribution ---
+# --- Gender ---
 st.subheader("Gender Distribution in Employment (%)")
 col4, _ = st.columns([2, 1])
 with col4:
@@ -137,7 +149,7 @@ with col7:
     ax7.tick_params(axis='x', rotation=45)
     st.pyplot(fig7)
 
-# --- Plotly Charts ---
+# --- Plotly Chart: Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
 col8, _ = st.columns([2, 1])
 with col8:
@@ -150,6 +162,7 @@ with col8:
     )
     st.plotly_chart(fig8, use_container_width=True)
 
+# --- Plotly Chart: AI Adoption vs Sector Growth ---
 st.subheader("AI Adoption vs Sector Growth")
 col9, _ = st.columns([2, 1])
 with col9:
@@ -162,7 +175,7 @@ with col9:
     )
     st.plotly_chart(fig9, use_container_width=True)
 
-# --- Country vs Sector Comparison ---
+# --- Country vs Selected Sectors ---
 st.header("📊 Country vs Selected Sectors Comparison")
 selected_country = st.selectbox("Select Country", sorted(df["Country"].unique()), key="country_sector_view")
 available_sectors = df["Sector"].unique()
@@ -198,12 +211,92 @@ else:
     col3, _ = st.columns([2, 1])
     with col3:
         avg_impact_df = comparison_df.groupby("Sector")["Sector_Impact_Score"].mean().reset_index()
-        fig_sector_impact = px.bar(
-            avg_impact_df,
-            x="Sector",
-            y="Sector_Impact_Score",
-            title="Average Sector Impact Score",
-            labels={"Sector_Impact_Score": "Impact Score"},
-            color="Sector"
-        )
-        st.plotly_chart(fig_sector_impact, use_container_width=True)
+        fig_impact, ax_impact = plt.subplots(figsize=(6, 2.5))
+        sns.barplot(data=avg_impact_df, x="Sector", y="Sector_Impact_Score", palette="viridis", ax=ax_impact)
+        ax_impact.set_ylabel("Avg Impact Score")
+        ax_impact.set_title("Sector-Wise Avg Impact")
+        fig_impact.tight_layout()
+        st.pyplot(fig_impact)
+
+# --- Country Comparison ---
+st.header("🌍 Country Comparison from 2010 to 2022")
+country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
+country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
+country_df = df[df["Country"].isin([country1, country2]) & df["Year"].between(2010, 2022)]
+
+if country_df.empty:
+    st.warning("No data available for selected countries and years.")
+else:
+    melted_df = pd.melt(country_df, id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"], var_name="Type", value_name="Unemployment")
+    melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
+
+    st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
+    col4, _ = st.columns([2, 1])
+    with col4:
+        fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
+        ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
+        ax_cmp.set_ylabel("Unemployment Rate")
+        ax_cmp.tick_params(axis='x', rotation=45)
+        fig_cmp.tight_layout()
+        st.pyplot(fig_cmp)
+
+    st.subheader("AI Adoption Rate Comparison")
+    col5, _ = st.columns([2, 1])
+    with col5:
+        fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
+        ax_ai.set_ylabel("AI Adoption Rate")
+        ax_ai.set_title("AI Adoption Rate (2010-2022)")
+        ax_ai.tick_params(axis='x', rotation=45)
+        fig_ai.tight_layout()
+        st.pyplot(fig_ai)
+
+# --- Sector-wise ---
+st.header("🏭 Sector-wise Unemployment Comparison")
+selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
+sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
+sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_year_range[0], sector_year_range[1]))]
+
+if sector_df.empty:
+    st.warning("No data found for selected sector and years.")
+else:
+    st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
+    col6, _ = st.columns([2, 1])
+    with col6:
+        fig_sector, ax_sector = plt.subplots(figsize=(6, 2.5))
+        sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
+        sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
+        ax_sector.set_ylabel("Unemployment Rate")
+        ax_sector.set_title(f"{selected_sector} Sector Unemployment Trend")
+        ax_sector.tick_params(axis='x', rotation=45)
+        fig_sector.tight_layout()
+        st.pyplot(fig_sector)
+
+# --- Unemployment vs Skills Gap ---
+st.subheader("Unemployment Impact vs Skills Gap")
+col7, _ = st.columns([2, 1])
+with col7:
+    fig1 = px.line(
+        filtered_df,
+        x="Year",
+        y=["Avg_PreAI", "Avg_PostAI", "Skills_Gap"],
+        labels={"value": "Impact/Gap"},
+        title="AI's Impact on Unemployment and Skills Gap"
+    )
+    fig1.update_layout(height=300)
+    st.plotly_chart(fig1, use_container_width=True)
+
+# --- AI Adoption vs Sector Growth ---
+st.subheader("AI Adoption vs Sector Growth")
+col8, _ = st.columns([2, 1])
+with col8:
+    fig2 = px.bar(
+        filtered_df,
+        x="Year",
+        y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
+        barmode="group",
+        title="AI Adoption Rate vs Sector Growth Decline"
+    )
+    fig2.update_layout(height=300)
+    st.plotly_chart(fig2, use_container_width=True)
