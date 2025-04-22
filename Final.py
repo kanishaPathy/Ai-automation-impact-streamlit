@@ -37,13 +37,13 @@ country = col2.selectbox("Select Country", sorted(df["Country"].unique()))
 sector = col3.selectbox("Select Sector", sorted(df["Sector"].unique()))
 education = col4.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()))
 
-# Filtered data for visualizations
-filtered_df = df[
-    (df["Country"] == country) &
-    (df["Sector"] == sector) &
-    (df["EducationLevel"] == education) &
-    (df["Year"].between(year_range[0], year_range[1]))
-]
+# # Filtered data for visualizations
+# filtered_df = df[
+#     (df["Country"] == country) &
+#     (df["Sector"] == sector) &
+#     (df["EducationLevel"] == education) &
+#     (df["Year"].between(year_range[0], year_range[1]))
+# ]
 # Prepare input data for prediction (using first year in range)
 input_df = pd.DataFrame({
     '_id.Country': [country],
@@ -51,11 +51,16 @@ input_df = pd.DataFrame({
     '_id.Year': [year_range[0]],
     '_id.EducationLevel': [education],
 })
-# Encoding and predictions
+
+# Encoding and preprocessing (same as in your code)
 X_train = df.drop(columns=['Avg_Automation_Impact'])
 X_encoded = pd.get_dummies(X_train)
 input_encoded = pd.get_dummies(input_df).reindex(columns=X_encoded.columns, fill_value=0)
 
+# Align the input data with the model's feature names
+input_encoded = input_encoded.reindex(columns=model.get_booster().feature_names, fill_value=0)
+
+# Make prediction with the aligned data
 with st.spinner("Predicting Automation Impact..."):
     prediction = model.predict(input_encoded)[0]
 
