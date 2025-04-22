@@ -463,7 +463,7 @@ bar_chart = alt.Chart(df).mark_bar().encode(
 ).properties(title="Automation Impact by Sector").interactive()
 st.altair_chart(bar_chart, use_container_width=True)
 
-# Chart display
+# Growth Rate Analysis
 st.title("Growth Rate / Revenue Analysis")
 
 # Main page widgets for user input
@@ -472,19 +472,11 @@ selected_sector = st.selectbox(
     sorted(df['Sector'].dropna().unique()), 
     key="sector_selectbox"
 )
-
 selected_country = st.selectbox(
     "Select Country", 
     sorted(df['Country'].dropna().unique()), 
     key="country_selectbox"
 )
-
-# selected_edu = st.selectbox(
-#     "Select Education Level", 
-#     sorted(df['EducationLevel'].dropna().unique()), 
-#     key="edu_selectbox"
-# )
-
 metric = st.selectbox(
     "Select Metric", 
     ["Revenue", "Growth_Rate"],
@@ -536,7 +528,7 @@ gender_chart = alt.Chart(gender_df).mark_bar().encode(
 ).properties(title="Gender Distribution by Sector").interactive()
 
 # Centering the chart using Streamlit's layout functions
-left_col, center_col, right_col = st.columns([1, 2, 1])
-with center_col: # Centering the chart in the middle column
+col1, col2, col3 = st.columns([1, 2, 1])  # Adjust the column weights to control space
+with col2:  # Centering the chart in the middle column
     # Display the gender distribution chart directly in Streamlit
-    st.altair_chart(gender_chart, use_container_width=True)  # This will center the chart in the column
+    st.altair_chart(gender_chart, use_container_width=True)  # This will center the chart in the columnn
