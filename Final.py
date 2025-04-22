@@ -163,8 +163,8 @@ with center_col:
 
 # --- Plotly Chart: AI Adoption vs Sector Growth ---
 st.subheader("AI Adoption vs Sector Growth")
-col9, _ = st.columns([2, 1])
-with col9:
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
     fig9 = px.bar(
         filtered_df,
         x="Year",
@@ -230,8 +230,8 @@ else:
     melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
 
     st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
-    col4, _ = st.columns([2, 1])
-    with col4:
+    left_col, center_col, right_col = st.columns([1, 2, 1])
+    with center_col:
         fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
         ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
@@ -241,8 +241,8 @@ else:
         st.pyplot(fig_cmp)
 
     st.subheader("AI Adoption Rate Comparison")
-    col5, _ = st.columns([2, 1])
-    with col5:
+    left_col, center_col, right_col = st.columns([1, 2, 1])
+    with center_col:
         fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
         ax_ai.set_ylabel("AI Adoption Rate")
