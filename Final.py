@@ -45,7 +45,6 @@ filtered_df = df[
 ]
 
 # --- Unemployment Impact Before vs After AI ---
-# --- Unemployment Impact Before vs After AI ---
 st.subheader("Unemployment Impact Before vs After AI")
 
 # Create three columns and put the plot in the center one
@@ -61,8 +60,8 @@ with center_col:
 
 # --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
-col2, _ = st.columns([2, 1])
-with col2:
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
     fig2, ax2 = plt.subplots(figsize=(6, 3))
     bar_width = 0.35
     years = filtered_df["Year"].astype(str)
@@ -99,8 +98,8 @@ if st.button("Predict Future Impact"):
     
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
-col3, _ = st.columns([2, 1])
-with col3:
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
     fig3, ax3 = plt.subplots(figsize=(6, 3))
     sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
     sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
@@ -109,8 +108,8 @@ with col3:
 
 # --- Gender ---
 st.subheader("Gender Distribution in Employment (%)")
-col4, _ = st.columns([2, 1])
-with col4:
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
     fig4, ax4 = plt.subplots(figsize=(6, 3))
     bar_width = 0.4
     x = range(len(filtered_df["Year"]))
