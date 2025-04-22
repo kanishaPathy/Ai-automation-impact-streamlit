@@ -310,39 +310,19 @@ else:
         st.pyplot(fig_ai)
 
 # --- Sector-wise ---
-st.header("🏭 Sector-wise Unemployment Comparison")
-selected_sector = st.selectbox("Select Sector", sorted(df["Sector"].unique()), key="sector_comp")
-sector_year_range = st.slider("Select Year Range", int(df["Year"].min()), int(df["Year"].max()), (2010, 2022))
-sector_df = df[(df["Sector"] == selected_sector) & (df["Year"].between(sector_year_range[0], sector_year_range[1]))]
+st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
 
-if sector_df.empty:
-    st.warning("No data found for selected sector and years.")
-else:
-    st.subheader(f"Unemployment Dot Plot in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
-    
-    # Prepare data in long format
-    dot_data = sector_df.melt(
-        id_vars="Year",
-        value_vars=["Avg_PreAI", "Avg_PostAI"],
-        var_name="AI_Era",
-        value_name="UnemploymentRate"
-    )
-
-    # Create dot plot
-    fig_dot = px.scatter(
-        dot_data,
-        x="Year",
-        y="UnemploymentRate",
-        color="AI_Era",
-        symbol="AI_Era",
-        title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment",
-        labels={"UnemploymentRate": "Unemployment Rate"},
-        height=400
-    )
-    fig_dot.update_traces(marker=dict(size=10))  # Make dots clearer
-    fig_dot.update_layout(xaxis=dict(dtick=1), xaxis_tickangle=-45)
-    st.plotly_chart(fig_dot, use_container_width=True)
-
+fig_bar = px.bar(
+    sector_df,
+    x="Year",
+    y=["Avg_PreAI", "Avg_PostAI"],
+    barmode="group",
+    title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment",
+    labels={"value": "Unemployment Rate", "variable": "AI Era"},
+    height=400
+)
+fig_bar.update_layout(xaxis=dict(dtick=1), xaxis_tickangle=-45)
+st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
