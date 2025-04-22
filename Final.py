@@ -435,3 +435,27 @@ bubble = alt.Chart(df).mark_circle().encode(
 ).properties(title="Skill Level vs Reskilling Demand (by Country)").interactive()
 st.altair_chart(bubble, use_container_width=True)
 
+
+# Radar Chart for Sector Score Breakdown
+# Pick a sector to display
+selected_sector = st.selectbox("Select a Sector", df["Sector"].unique())
+sector_row = df[df["Sector"] == selected_sector].mean()
+
+radar_df = pd.DataFrame({
+    "Metric": ["Automation Impact", "Revenue", "Growth Rate", "AI Adoption Rate", "Sector Impact Score"],
+    "Value": [
+        sector_row["Avg_Automation_Impact"],
+        sector_row["Revenue"],
+        sector_row["Growth_Rate"],
+        sector_row["AI_Adoption_Rate"],
+        sector_row["Sector_Impact_Score"]
+    ]
+})
+
+fig = px.line_polar(radar_df, r='Value', theta='Metric', line_close=True, 
+                    title=f"Impact Metrics for {selected_sector}", 
+                    height=500)
+fig.update_traces(fill='toself')
+st.plotly_chart(fig, use_container_width=True)
+
+
