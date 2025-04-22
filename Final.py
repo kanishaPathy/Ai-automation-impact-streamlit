@@ -487,8 +487,12 @@ else:
     
     # Filter the DataFrame based on the user's selection
     filtered_df = df[(df['Sector'] == selected_sector) & 
-                     (df['Country'] == selected_country) & 
-                     (df['EducationLevel'] == selected_edu)]
+                     (df['Country'] == selected_country) 
+                     ]
+ # # Filter the DataFrame based on the user's selection
+ #    filtered_df = df[(df['Sector'] == selected_sector) & 
+ #                     (df['Country'] == selected_country) & 
+ #                     (df['EducationLevel'] == selected_edu)]
 
     if filtered_df.empty:
         st.warning("No data available for the selected filters.")
@@ -499,3 +503,12 @@ else:
         # Optionally display the filtered dataframe if needed
         if st.checkbox("Show Filtered Data"):
             st.write(filtered_df)
+
+#Sector Growth
+scatter = alt.Chart(df).mark_circle(size=80).encode(
+    x="Sector_Growth_Decline:Q",
+    y="Avg_EconomicImpact:Q",
+    color="Sector:N",
+    tooltip=["Sector", "Sector_Growth_Decline", "Avg_EconomicImpact"]
+).properties(title="Economic Impact vs Sector Growth Decline").interactive()
+st.altair_chart(scatter, use_container_width=True)
