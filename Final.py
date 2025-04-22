@@ -326,22 +326,24 @@ else:
     st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
     left_col, center_col, right_col = st.columns([1, 2, 1])
     with center_col:
-          fig = px.line(
-        plot_df,
-        x="Year",
-        y="Unemployment Rate",
-        color="Phase",
-        markers=True,
-        title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment ({sector_year_range[0]} - {sector_year_range[1]})",
-        labels={"Unemployment Rate": "Unemployment Rate", "Year": "Year", "Phase": "Impact Phase"},
-    )
-    fig.update_layout(
-        xaxis=dict(dtick=1),
-        legend_title="Impact Phase",
-        title_x=0.5
-    )
-    st.plotly_chart(fig, use_container_width=True)
+         fig = px.line(
+    plot_df,
+    x="Year",
+    y="Unemployment Rate",
+    color="Phase",
+    markers=True,
+    title=f"{selected_sector} Sector: Pre-AI vs Post-AI Unemployment ({sector_year_range[0]} - {sector_year_range[1]})",
+    labels={"Unemployment Rate": "Unemployment Rate", "Year": "Year", "Phase": "Impact Phase"},
+)
 
+fig.update_layout(
+    xaxis=dict(dtick=1),
+    legend_title="Impact Phase",
+    title_x=0.5,  # 👉 This centers the title
+    title_font=dict(size=18)
+)
+
+st.plotly_chart(fig, use_container_width=True)
 
 
 # --- Unemployment vs Skills Gap ---
