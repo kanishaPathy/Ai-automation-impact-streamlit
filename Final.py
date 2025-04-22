@@ -447,28 +447,27 @@ st.altair_chart(bar_chart, use_container_width=True)
 
 # Chart display
 
-import streamlit as st
 
-# Sidebar Selectboxes for user input with unique keys
-selected_sector = st.sidebar.selectbox(
+# Main page widgets for user input
+selected_sector = st.selectbox(
     "Select Sector", 
     sorted(df['Sector'].dropna().unique()), 
     key="sector_selectbox"
 )
 
-selected_country = st.sidebar.selectbox(
+selected_country = st.selectbox(
     "Select Country", 
     sorted(df['Country'].dropna().unique()), 
     key="country_selectbox"
 )
 
-selected_edu = st.sidebar.selectbox(
+selected_edu = st.selectbox(
     "Select Education Level", 
     sorted(df['EducationLevel'].dropna().unique()), 
     key="edu_selectbox"
 )
 
-metric = st.sidebar.selectbox(
+metric = st.selectbox(
     "Select Metric", 
     ["Revenue", "Growth_Rate", "Automation_Impact_Level", "Sector_Impact_Score"],
     key="metric_selectbox"
