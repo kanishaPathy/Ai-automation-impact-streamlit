@@ -61,21 +61,16 @@ with center_col:
 
 # --- AI vs Automation Impact ---
 st.subheader("AI vs Automation Impact")
-
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col2, _ = st.columns([2, 1])
+with col2:
     fig2, ax2 = plt.subplots(figsize=(6, 3))
     bar_width = 0.35
     years = filtered_df["Year"].astype(str)
     x = range(len(years))
-    
     ax2.bar(x, filtered_df["Avg_Automation_Impact"], width=bar_width, label="Automation")
     ax2.bar([i + bar_width for i in x], filtered_df["Avg_AI_Role_Jobs"], width=bar_width, label="AI Role Jobs")
-    
     ax2.set_xticks([i + bar_width / 2 for i in x])
     ax2.set_xticklabels(years, rotation=45)
-    ax2.set_title("AI vs Automation Impact", fontsize=12)
     ax2.legend()
     st.pyplot(fig2)
 
@@ -104,25 +99,18 @@ if st.button("Predict Future Impact"):
     
 #Reskilling
 st.subheader("Reskilling & Upskilling Programs Trend")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col3, _ = st.columns([2, 1])
+with col3:
     fig3, ax3 = plt.subplots(figsize=(6, 3))
     sns.lineplot(data=filtered_df, x="Year", y="Reskilling_Demand", label="Reskilling Demand", marker="o", ax=ax3)
     sns.lineplot(data=filtered_df, x="Year", y="Upskilling_Programs", label="Upskilling Programs", marker="o", ax=ax3)
-    ax3.set_title("Reskilling & Upskilling Programs Trend", fontsize=12)
     ax3.tick_params(axis='x', rotation=45)
     st.pyplot(fig3)
 
 # --- Gender ---
 st.subheader("Gender Distribution in Employment (%)")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col4, _ = st.columns([2, 1])
+with col4:
     fig4, ax4 = plt.subplots(figsize=(6, 3))
     bar_width = 0.4
     x = range(len(filtered_df["Year"]))
@@ -135,11 +123,8 @@ with center_col:
 
 # --- Tech Investment vs AI Adoption ---
 st.subheader("Tech Investment vs AI Adoption Rate")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col5, _ = st.columns([2, 1])
+with col5:
     fig5, ax5 = plt.subplots(figsize=(6, 3))
     sns.lineplot(data=filtered_df, x="Year", y="Tech_Investment", label="Tech Investment", marker="o", ax=ax5)
     sns.lineplot(data=filtered_df, x="Year", y="AI_Adoption_Rate", label="AI Adoption Rate", marker="o", ax=ax5)
@@ -148,11 +133,8 @@ with center_col:
 
 # --- Sector Growth ---
 st.subheader("Sector Growth/Decline Over Time")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col6, _ = st.columns([2, 1])
+with col6:
     fig6, ax6 = plt.subplots(figsize=(6, 3))
     sns.barplot(data=filtered_df, x="Year", y="Sector_Growth_Decline", palette="coolwarm", ax=ax6)
     ax6.set_xticklabels(filtered_df["Year"].astype(str), rotation=45)
@@ -160,11 +142,8 @@ with center_col:
 
 # --- Automation Level ---
 st.subheader("Automation Level by Year")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col7, _ = st.columns([2, 1])
+with col7:
     fig7, ax7 = plt.subplots(figsize=(6, 3))
     sns.lineplot(data=filtered_df, x="Year", y="Automation_Level", marker="o", ax=ax7)
     ax7.tick_params(axis='x', rotation=45)
@@ -172,11 +151,8 @@ with center_col:
 
 # --- Plotly Chart: Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col8, _ = st.columns([2, 1])
+with col8:
     fig8 = px.line(
         filtered_df,
         x="Year",
@@ -210,11 +186,8 @@ if comparison_df.empty:
     st.warning("No data available for the selected filters.")
 else:
     st.subheader(f"AI Adoption Rate over Years in {selected_country}")
-  
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+    col1, _ = st.columns([2, 1])
+    with col1:
         fig_sector_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=comparison_df, x="Year", y="AI_Adoption_Rate", hue="Sector", marker="o", ax=ax_ai)
         ax_ai.set_ylabel("AI Adoption Rate")
@@ -224,11 +197,8 @@ with center_col:
         st.pyplot(fig_sector_ai)
 
     st.subheader(f"Automation Level over Years in {selected_country}")
-   
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+    col2, _ = st.columns([2, 1])
+    with col2:
         fig_sector_auto, ax_auto = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=comparison_df, x="Year", y="Automation_Level", hue="Sector", marker="o", ax=ax_auto)
         ax_auto.set_ylabel("Automation Level")
@@ -238,11 +208,8 @@ with center_col:
         st.pyplot(fig_sector_auto)
 
     st.subheader(f"Average Sector Impact Score in {selected_country}")
-   
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+    col3, _ = st.columns([2, 1])
+    with col3:
         avg_impact_df = comparison_df.groupby("Sector")["Sector_Impact_Score"].mean().reset_index()
         fig_impact, ax_impact = plt.subplots(figsize=(6, 2.5))
         sns.barplot(data=avg_impact_df, x="Sector", y="Sector_Impact_Score", palette="viridis", ax=ax_impact)
@@ -264,11 +231,8 @@ else:
     melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
 
     st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
-   
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+    col4, _ = st.columns([2, 1])
+    with col4:
         fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
         ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
@@ -298,11 +262,8 @@ if sector_df.empty:
     st.warning("No data found for selected sector and years.")
 else:
     st.subheader(f"Unemployment in {selected_sector} from {sector_year_range[0]} to {sector_year_range[1]}")
-   
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+    col6, _ = st.columns([2, 1])
+    with col6:
         fig_sector, ax_sector = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=sector_df, x="Year", y="Avg_PreAI", label="Pre-AI", marker="o", ax=ax_sector)
         sns.lineplot(data=sector_df, x="Year", y="Avg_PostAI", label="Post-AI", marker="o", ax=ax_sector)
@@ -314,11 +275,8 @@ with center_col:
 
 # --- Unemployment vs Skills Gap ---
 st.subheader("Unemployment Impact vs Skills Gap")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col7, _ = st.columns([2, 1])
+with col7:
     fig1 = px.line(
         filtered_df,
         x="Year",
@@ -331,11 +289,8 @@ with center_col:
 
 # --- AI Adoption vs Sector Growth ---
 st.subheader("AI Adoption vs Sector Growth")
-
-# Use three columns and center the plot
-left_col, center_col, right_col = st.columns([1, 2, 1])
-
-with center_col:
+col8, _ = st.columns([2, 1])
+with col8:
     fig2 = px.bar(
         filtered_df,
         x="Year",
