@@ -216,7 +216,10 @@ with tab5:
     available_countries = [c for c in sorted(df["Country"].unique()) if c != selected_country1]
     selected_country2 = st.selectbox("Select Second Country", available_countries, key="country2")
 
-
+    country_df = df[
+        ((df["Country"] == selected_country1) | (df["Country"] == selected_country2)) &
+        (df["Year"] >= 2010) & (df["Year"] <= 2022)
+    ]
     if country_df.empty:
         st.warning("No data available for selected countries and years.")
     else:
