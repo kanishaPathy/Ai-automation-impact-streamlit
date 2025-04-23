@@ -243,7 +243,6 @@ with tab5:
         ax_ai.tick_params(axis='x', rotation=45)
         fig_ai.tight_layout()
         st.pyplot(fig_ai)
-        --- Combined Tab for Country vs Sector and Country vs Country ---
 # --- TAB 6 ---
 with tab6:
     # --- Education Level Impact ---
