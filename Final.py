@@ -476,3 +476,21 @@ fig_gap_diff = px.bar(
     labels={'Gap_Difference': 'Reskilling Gap Difference'}
 )
 st.plotly_chart(fig_gap_diff)
+
+#Sector-Revenue
+if 'Sector' in df.columns:
+    sector_revenue = df.groupby('Sector')['Revenue'].mean().reset_index()
+else:
+    sector_revenue = df.groupby('Skill_Level')['Revenue'].mean().reset_index()
+    sector_revenue.rename(columns={"Skill_Level": "Sector"}, inplace=True)
+
+fig_sector_rev = px.bar(
+    sector_revenue,
+    x="Sector",
+    y="Revenue",
+    title="Average Revenue by Sector",
+    labels={"Revenue": "Average Revenue"}
+)
+
+st.plotly_chart(fig_sector_rev)
+
