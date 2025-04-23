@@ -271,7 +271,7 @@ with tab5:
 
             st.write(f"**{selected_country1} in {selected_sector} Sector**")
             fig_cs, ax_cs = plt.subplots(figsize=(6, 2.5))
-            sns.lineplot(data=country_sector_df, x="Year", y="Unemployment", marker="o", ax=ax_cs)
+            sns.lineplot(data=country_sector_df, x="Year", y="Unemployment_Rate", marker="o", ax=ax_cs)
             ax_cs.set_title("Unemployment Trend in Selected Sector")
             ax_cs.set_ylabel("Unemployment Rate")
             ax_cs.tick_params(axis='x', rotation=45)
