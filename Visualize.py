@@ -163,8 +163,9 @@ with tab4:
 with tab5:
     st.subheader("🌍 Country Comparison from 2010 to 2022")
     selected_country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
-    selected_country2 = st.selectbox("Select Second Country", sorted(df["Country"].unique()), index=1, key="country2")
-    country_df = df[df["Country"].isin([selected_country1, selected_country2]) & df["Year"].between(2010, 2022)]
+    available_countries = [c for c in sorted(df["Country"].unique()) if c != selected_country1]
+    selected_country2 = st.selectbox("Select Second Country", available_countries, key="country2")
+
 
     if country_df.empty:
         st.warning("No data available for selected countries and years.")
