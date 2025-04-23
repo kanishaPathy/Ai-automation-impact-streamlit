@@ -127,7 +127,7 @@ with tab2:
         gender_gap_df,
         x='Year',
         y=['Male_Reskilling_Gap', 'Female_Reskilling_Gap'],
-        title="Gender-Based Reskilling Gaps Over the Years",
+        # title="Gender-Based Reskilling Gaps Over the Years",
         labels={"value": "Average Reskilling Gap", "variable": "Gender"},
         color_discrete_map={
             'Male_Reskilling_Gap': 'orange',
@@ -172,7 +172,7 @@ with tab3:
         y="Avg_Automation_Impact:Q",
         color="Sector:N",
         tooltip=["Sector", "Avg_Automation_Impact"]
-    ).properties(title="Automation Impact by Sector").interactive()
+    )
     st.altair_chart(bar_chart, use_container_width=True)
 
     st.subheader("AI Adoption vs Sector Growth")
