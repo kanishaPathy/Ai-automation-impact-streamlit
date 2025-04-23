@@ -162,13 +162,13 @@ with tab4:
         st.subheader("AI Adoption Rate Comparison")
         left_col, center_col, right_col = st.columns([1, 2, 1])
         with center_col:
-        fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
-        sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
-        ax_ai.set_ylabel("AI Adoption Rate")
-        ax_ai.set_title("AI Adoption Rate (2010-2022)")
-        ax_ai.tick_params(axis='x', rotation=45)
-        fig_ai.tight_layout()
-        st.pyplot(fig_ai)
+            fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
+            sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
+            ax_ai.set_ylabel("AI Adoption Rate")
+            ax_ai.set_title("AI Adoption Rate (2010-2022)")
+            ax_ai.tick_params(axis='x', rotation=45)
+            fig_ai.tight_layout()
+            st.pyplot(fig_ai)
 
 # --- TAB 5 ---
 with tab5:
