@@ -51,12 +51,13 @@ with st.spinner("Predicting Automation Impact..."):
 st.success(f"🔮 Predicted Automation Impact Score for {year_range[0]}: **{prediction:.2f}**")
 
 # --- TABS SECTION ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📉 Unemployment & Automation",
     "📊 Skills & Gender",
     "🚀 Tech & Sector Growth",
     "🌐 Country Comparison",
     "🌍 Country vs Country"
+    "🎓 Education Level Impact on Unemployment (Altair)"
 ])
 
 # --- TAB 1 ---
@@ -99,6 +100,54 @@ with tab2:
     ax4.legend()
     st.pyplot(fig4)
 
+    #Bubble Chart
+    st.subheader("Skill Level vs Reskilling Demand (by Country)")
+    bubble = alt.Chart(df).mark_circle().encode(
+        x="Skill_Level:N",
+        y="Reskilling_Demand:Q",
+        size="Upskilling_Programs:Q",
+        color="Country:N",
+        tooltip=["Skill_Level", "Reskilling_Demand", "Upskilling_Programs"]
+    ).properties(title="Skill Level vs Reskilling Demand (by Country)").interactive()
+    st.altair_chart(bubble, use_container_width=True)
+
+    # Gender-wise Reskilling Participation Over Time
+
+    st.subheader("Gender-Based Reskilling Gap")
+    # --- Step 1: Calculate Gender-Based Reskilling Gaps ---
+    df['Male_Reskilling_Gap'] = df['Skills_Gap'] * (df['Male_Percentage'] / 100)
+    df['Female_Reskilling_Gap'] = df['Skills_Gap'] * (df['Female_Percentage'] / 100)
+    
+    # --- Step 2: Aggregate by Year ---
+    gender_gap_df = df.groupby('Year')[['Male_Reskilling_Gap', 'Female_Reskilling_Gap']].mean().reset_index()
+    
+    # --- Step 3: Plot Line Chart for Reskilling Gaps ---
+    fig_gender_reskill_gap = px.line(
+        gender_gap_df,
+        x='Year',
+        y=['Male_Reskilling_Gap', 'Female_Reskilling_Gap'],
+        title="Gender-Based Reskilling Gaps Over the Years",
+        labels={"value": "Average Reskilling Gap", "variable": "Gender"},
+        color_discrete_map={
+            'Male_Reskilling_Gap': 'orange',
+            'Female_Reskilling_Gap': 'purple'
+        }
+    )
+    st.plotly_chart(fig_gender_reskill_gap)
+    
+    # --- Step 4: (Optional) Gap Difference Plot ---
+    gender_gap_df['Gap_Difference'] = gender_gap_df['Male_Reskilling_Gap'] - gender_gap_df['Female_Reskilling_Gap']
+    
+    fig_gap_diff = px.bar(
+        gender_gap_df,
+        x='Year',
+        y='Gap_Difference',
+        title="Difference in Reskilling Gaps (Male - Female)",
+        labels={'Gap_Difference': 'Reskilling Gap Difference'}
+    )
+    st.plotly_chart(fig_gap_diff)
+
+
 # --- TAB 3 ---
 with tab3:
     st.subheader("Tech Investment vs AI Adoption Rate")
@@ -116,6 +165,7 @@ with tab3:
     fig6.tight_layout()
     st.pyplot(fig6)
 
+    st.subheader("Automation Impact by Sector")
     bar_chart = alt.Chart(df).mark_bar().encode(
         x=alt.X("Sector:N", sort='-y'),
         y="Avg_Automation_Impact:Q",
@@ -130,7 +180,7 @@ with tab3:
         x="Year",
         y=["AI_Adoption_Rate", "Sector_Growth_Decline"],
         barmode="group",
-        title="AI Adoption Rate vs Sector Growth Decline"
+        # title="AI Adoption Rate vs Sector Growth Decline"
     )
     fig2.update_layout(height=300)
     st.plotly_chart(fig2, use_container_width=True)
@@ -190,3 +240,46 @@ with tab5:
         ax_ai.tick_params(axis='x', rotation=45)
         fig_ai.tight_layout()
         st.pyplot(fig_ai)
+        
+# --- TAB 6 ---
+with tab6:
+    # --- Education Level Impact with Altair Chart ---
+    st.subheader("🎓 Education Level Impact on Unemployment (Altair)")
+    
+    # Selection widgets
+    selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="altair_education")
+    selected_countries = st.multiselect("Select Countries", sorted(df["Country"].unique()), default=sorted(df["Country"].unique()), key="altair_country")
+    education_year_range = st.slider("Select Year Range", 
+                                     int(df["Year"].min()), int(df["Year"].max()), 
+                                     (2010, 2022), key="altair_year_range")
+    
+    # Filter data
+    edu_df = df[
+        (df["EducationLevel"] == selected_education_level) &
+        (df["Country"].isin(selected_countries)) &
+        (df["Year"].between(education_year_range[0], education_year_range[1]))
+    ]
+    
+    if edu_df.empty:
+        st.warning("No data found for the selected filters.")
+    else:
+        # Melt data for Altair
+        alt_df = edu_df.melt(id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"],
+                             var_name="Phase", value_name="Unemployment Rate")
+    
+        # Correct the subheader for displaying the year range
+        st.subheader(f"📊 Altair Chart for {selected_education_level} ({education_year_range[0]} - {education_year_range[1]})")
+        
+        # Altair chart setup
+        alt_chart = alt.Chart(alt_df).mark_line(point=True).encode(
+            x=alt.X("Year:O", title="Year"),
+            y=alt.Y("Unemployment Rate:Q", title="Unemployment Rate"),
+            color=alt.Color("Phase:N", title="Impact Phase"),
+            tooltip=["Year", "Country", "Phase", "Unemployment Rate"]
+        ).properties(
+            width=700,
+            height=400,
+            title=f"{selected_education_level}: Pre-AI vs Post-AI Unemployment"
+        ).interactive()
+    
+        st.altair_chart(alt_chart, use_container_width=True)
