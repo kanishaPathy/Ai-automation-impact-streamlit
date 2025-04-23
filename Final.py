@@ -461,8 +461,13 @@ fig_gender_reskill_gap = px.line(
     x='Year',
     y=['Male_Reskilling_Gap', 'Female_Reskilling_Gap'],
     title="Gender-Based Reskilling Gaps Over the Years",
-    labels={"value": "Average Reskilling Gap", "variable": "Gender"}
+    labels={"value": "Average Reskilling Gap", "variable": "Gender"},
+    color_discrete_map={
+        'Male_Reskilling_Gap': 'orange',
+        'Female_Reskilling_Gap': 'purple'
+    }
 )
+
 st.plotly_chart(fig_gender_reskill_gap)
 
 # --- Step 4: (Optional) Gap Difference Plot ---
