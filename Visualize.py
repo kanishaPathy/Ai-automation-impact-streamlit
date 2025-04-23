@@ -56,7 +56,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Skills & Gender",
     "🚀 Tech & Sector Growth",
     "🌐 Country Comparison",
-    "🌍 Country vs Country"
+    "🌍 Country vs Country",
     "🎓 Education Level Impact on Unemployment (Altair)"
 ])
 
