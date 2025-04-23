@@ -247,11 +247,12 @@ with tab4:
 with tab5:
     st.subheader("🌍 Country Comparison Insights")
 
+    # --- Country Selectors ---
     selected_country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="cmp_country1")
     available_countries = [c for c in sorted(df["Country"].unique()) if c != selected_country1]
     selected_country2 = st.selectbox("Select Second Country", available_countries, key="cmp_country2")
 
-    # Filter for both countries and year range
+    # --- Filter for both countries and year range ---
     country_df = df[
         ((df["Country"] == selected_country1) | (df["Country"] == selected_country2)) &
         (df["Year"] >= 2010) & (df["Year"] <= 2022)
@@ -269,22 +270,30 @@ with tab5:
                 (df["Year"] >= 2010) & (df["Year"] <= 2022)
             ]
 
-            st.write(f"**{selected_country1} in {selected_sector} Sector**")
-            fig_cs, ax_cs = plt.subplots(figsize=(6, 2.5))
-            sns.lineplot(data=country_sector_df, x="Year", y="Unemployment_Rate", marker="o", ax=ax_cs)
-            ax_cs.set_title("Unemployment Trend in Selected Sector")
-            ax_cs.set_ylabel("Unemployment Rate")
-            ax_cs.tick_params(axis='x', rotation=45)
-            fig_cs.tight_layout()
-            st.pyplot(fig_cs)
+            if country_sector_df.empty:
+                st.info("No data available for this country-sector-year combination.")
+            else:
+                st.write(f"**{selected_country1} in {selected_sector} Sector**")
 
-            fig_adopt, ax_adopt = plt.subplots(figsize=(6, 2.5))
-            sns.lineplot(data=country_sector_df, x="Year", y="AI_Adoption_Rate", marker="o", color="green", ax=ax_adopt)
-            ax_adopt.set_title("AI Adoption Rate in Selected Sector")
-            ax_adopt.set_ylabel("AI Adoption Rate")
-            ax_adopt.tick_params(axis='x', rotation=45)
-            fig_adopt.tight_layout()
-            st.pyplot(fig_adopt)
+                # Unemployment trend (assuming you meant Avg_PreAI/PostAI as proxies)
+                fig_cs, ax_cs = plt.subplots(figsize=(6, 2.5))
+                sns.lineplot(data=country_sector_df, x="Year", y="Avg_PreAI", marker="o", label="Pre-AI", ax=ax_cs)
+                sns.lineplot(data=country_sector_df, x="Year", y="Avg_PostAI", marker="o", label="Post-AI", ax=ax_cs)
+                ax_cs.set_title("AI Impact on Employment in Selected Sector")
+                ax_cs.set_ylabel("Average Metric")
+                ax_cs.tick_params(axis='x', rotation=45)
+                ax_cs.legend()
+                fig_cs.tight_layout()
+                st.pyplot(fig_cs)
+
+                # AI Adoption
+                fig_adopt, ax_adopt = plt.subplots(figsize=(6, 2.5))
+                sns.lineplot(data=country_sector_df, x="Year", y="AI_Adoption_Rate", marker="o", color="green", ax=ax_adopt)
+                ax_adopt.set_title("AI Adoption Rate in Selected Sector")
+                ax_adopt.set_ylabel("AI Adoption Rate")
+                ax_adopt.tick_params(axis='x', rotation=45)
+                fig_adopt.tight_layout()
+                st.pyplot(fig_adopt)
 
         # --- Section 2: Country vs Country ---
         with st.expander("🌐 Country vs Country Comparison", expanded=True):
@@ -293,18 +302,26 @@ with tab5:
                 id_vars=["Year", "Country"],
                 value_vars=["Avg_PreAI", "Avg_PostAI"],
                 var_name="Type",
-                value_name="Unemployment"
+                value_name="Average_Metric"
             )
-            melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
+            melted_df["Type"] = melted_df["Type"].replace({
+                "Avg_PreAI": "Pre-AI",
+                "Avg_PostAI": "Post-AI"
+            })
 
+            # Pre vs Post AI Employment/Metric Comparison
             fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
-            sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
-            ax_cmp.set_title("Unemployment Trend (Pre-AI vs Post-AI)")
-            ax_cmp.set_ylabel("Unemployment Rate")
+            sns.lineplot(
+                data=melted_df, x="Year", y="Average_Metric",
+                hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp
+            )
+            ax_cmp.set_title("Pre-AI vs Post-AI Trends")
+            ax_cmp.set_ylabel("Average Value")
             ax_cmp.tick_params(axis='x', rotation=45)
             fig_cmp.tight_layout()
             st.pyplot(fig_cmp)
 
+            # AI Adoption Comparison
             fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
             sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
             ax_ai.set_title("AI Adoption Rate Comparison")
