@@ -243,8 +243,8 @@ with tab5:
         
 # --- TAB 6 ---
 with tab6:
-    # --- Education Level Impact with Altair Chart ---
-    st.subheader("🎓 Education Level Impact on Unemployment (Altair)")
+    # --- Education Level Impact ---
+    st.subheader("🎓 Education Level Impact on Unemployment")
     
     # Selection widgets
     selected_education_level = st.selectbox("Select Education Level", sorted(df["EducationLevel"].unique()), key="altair_education")
