@@ -444,24 +444,35 @@ else:
             st.write(filtered_df)
 
 # Gender-wise Reskilling Participation Over Time
+
+# Assuming you've already loaded your dataset as `df`
+# Example: df = pd.read_csv("your_data.csv")
 st.subheader("Gender-Based Reskilling Gap")
+# --- Step 1: Calculate Gender-Based Reskilling Gaps ---
+df['Male_Reskilling_Gap'] = df['Skills_Gap'] * (df['Male_Percentage'] / 100)
+df['Female_Reskilling_Gap'] = df['Skills_Gap'] * (df['Female_Percentage'] / 100)
 
-gender_years = st.slider("Select Year Range:", 
-                         int(reskilling_df['Year'].min()), 
-                         int(reskilling_df['Year'].max()), 
-                         (2015, 2024))
+# --- Step 2: Aggregate by Year ---
+gender_gap_df = df.groupby('Year')[['Male_Reskilling_Gap', 'Female_Reskilling_Gap']].mean().reset_index()
 
-gender_df = reskilling_df[
-    (reskilling_df['Year'] >= gender_years[0]) &
-    (reskilling_df['Year'] <= gender_years[1])
-]
+# --- Step 3: Plot Line Chart for Reskilling Gaps ---
+fig_gender_reskill_gap = px.line(
+    gender_gap_df,
+    x='Year',
+    y=['Male_Reskilling_Gap', 'Female_Reskilling_Gap'],
+    title="Gender-Based Reskilling Gaps Over the Years",
+    labels={"value": "Average Reskilling Gap", "variable": "Gender"}
+)
+st.plotly_chart(fig_gender_reskill_gap)
 
-fig = px.bar(gender_df, 
-             x='Year', 
-             y='Reskilled Count', 
-             color='Gender', 
-             barmode='group',
-             title=f"Reskilled Individuals by Gender ({gender_years[0]} - {gender_years[1]})",
-             labels={"Reskilled Count": "Number of Individuals"})
-st.plotly_chart(fig, use_container_width=True)
+# --- Step 4: (Optional) Gap Difference Plot ---
+gender_gap_df['Gap_Difference'] = gender_gap_df['Male_Reskilling_Gap'] - gender_gap_df['Female_Reskilling_Gap']
 
+fig_gap_diff = px.bar(
+    gender_gap_df,
+    x='Year',
+    y='Gap_Difference',
+    title="Difference in Reskilling Gaps (Male - Female)",
+    labels={'Gap_Difference': 'Reskilling Gap Difference'}
+)
+st.plotly_chart(fig_gap_diff)
