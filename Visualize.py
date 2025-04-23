@@ -108,7 +108,8 @@ with tab2:
         size="Upskilling_Programs:Q",
         color="Country:N",
         tooltip=["Skill_Level", "Reskilling_Demand", "Upskilling_Programs"]
-    ).properties(title="Skill Level vs Reskilling Demand (by Country)").interactive()
+    )
+    # .properties(title="Skill Level vs Reskilling Demand (by Country)").interactive()
     st.altair_chart(bubble, use_container_width=True)
 
     # Gender-wise Reskilling Participation Over Time
@@ -211,38 +212,60 @@ with tab4:
 
 # --- TAB 5 ---
 with tab5:
-    st.subheader("🌍 Country Comparison from 2010 to 2022")
+    st.subheader("🌍 Country Comparison (Select Year Range)")
+
+    # Country selection
     selected_country1 = st.selectbox("Select First Country", sorted(df["Country"].unique()), key="country1")
     available_countries = [c for c in sorted(df["Country"].unique()) if c != selected_country1]
     selected_country2 = st.selectbox("Select Second Country", available_countries, key="country2")
 
+    # Year range selection
+    min_year = int(df["Year"].min())
+    max_year = int(df["Year"].max())
+    year_range = st.slider("Select Year Range", min_value=min_year, max_value=max_year, value=(2010, 2022))
+
+    # Filter data
     country_df = df[
         ((df["Country"] == selected_country1) | (df["Country"] == selected_country2)) &
-        (df["Year"] >= 2010) & (df["Year"] <= 2022)
+        (df["Year"] >= year_range[0]) & (df["Year"] <= year_range[1])
     ]
-    if country_df.empty:
-        st.warning("No data available for selected countries and years.")
-    else:
-        melted_df = pd.melt(country_df, id_vars=["Year", "Country"], value_vars=["Avg_PreAI", "Avg_PostAI"], var_name="Type", value_name="Unemployment")
-        melted_df["Type"] = melted_df["Type"].replace({"Avg_PreAI": "Pre-AI", "Avg_PostAI": "Post-AI"})
 
-        st.subheader("Unemployment Impact (Pre-AI vs Post-AI)")
+    if country_df.empty:
+        st.warning("No data available for selected countries and year range.")
+    else:
+        # Melted data for unemployment-style comparison
+        melted_df = pd.melt(
+            country_df,
+            id_vars=["Year", "Country"],
+            value_vars=["Avg_PreAI", "Avg_PostAI"],
+            var_name="Type",
+            value_name="Unemployment"
+        )
+        melted_df["Type"] = melted_df["Type"].replace({
+            "Avg_PreAI": "Pre-AI",
+            "Avg_PostAI": "Post-AI"
+        })
+
+        # --- Plot 1: Unemployment Trend (Pre vs Post AI)
+        st.subheader("📉 Unemployment Impact (Pre-AI vs Post-AI)")
         fig_cmp, ax_cmp = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=melted_df, x="Year", y="Unemployment", hue="Type", style="Country", markers=True, dashes=False, ax=ax_cmp)
-        ax_cmp.set_title("Country-wise Unemployment Trend (Pre-AI vs Post-AI)")
+        ax_cmp.set_title(f"Country-wise Unemployment Trend ({year_range[0]}–{year_range[1]})")
         ax_cmp.set_ylabel("Unemployment Rate")
         ax_cmp.tick_params(axis='x', rotation=45)
         fig_cmp.tight_layout()
         st.pyplot(fig_cmp)
 
-        st.subheader("AI Adoption Rate Comparison")
+        # --- Plot 2: AI Adoption Rate
+        st.subheader("🤖 AI Adoption Rate Comparison")
         fig_ai, ax_ai = plt.subplots(figsize=(6, 2.5))
         sns.lineplot(data=country_df, x="Year", y="AI_Adoption_Rate", hue="Country", marker="o", ax=ax_ai)
         ax_ai.set_ylabel("AI Adoption Rate")
-        ax_ai.set_title("AI Adoption Rate (2010-2022)")
+        ax_ai.set_title(f"AI Adoption Rate ({year_range[0]}–{year_range[1]})")
         ax_ai.tick_params(axis='x', rotation=45)
         fig_ai.tight_layout()
         st.pyplot(fig_ai)
+
 # --- TAB 6 ---
 with tab6:
     # --- Education Level Impact ---
